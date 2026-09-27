@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SMC Trading Hub Pro Final - Multi-Asset Live Feeds</title>
+    <title>SMC Trading Hub Pro Final - Multi-Asset & Gemini AI</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- FontAwesome CDN -->
@@ -49,6 +49,11 @@
             0% { background-color: rgba(239, 68, 68, 0.4); color: #ef4444; }
             100% { background-color: transparent; }
         }
+        .ai-msg-prose p { margin-bottom: 0.5rem; }
+        .ai-msg-prose p:last-child { margin-bottom: 0; }
+        .ai-msg-prose ul { list-style-type: disc; margin-left: 1.25rem; margin-bottom: 0.5rem; }
+        .ai-msg-prose ol { list-style-type: decimal; margin-left: 1.25rem; margin-bottom: 0.5rem; }
+        .ai-msg-prose code { background: rgba(0,0,0,0.2); padding: 0.1rem 0.3rem; border-radius: 0.25rem; font-family: monospace; }
     </style>
 </head>
 <body class="bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 min-h-screen font-sans flex flex-col transition-colors duration-200 tap-highlight-transparent">
@@ -64,47 +69,46 @@
                 <div>
                     <div class="flex items-center gap-1.5">
                         <h1 class="text-base sm:text-lg font-black tracking-tight text-slate-900 dark:text-white uppercase">SMC Hub Pro</h1>
-                        <span class="text-[10px] px-2 py-0.5 rounded font-black uppercase bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30">Final Live</span>
+                        <span class="text-[10px] px-2 py-0.5 rounded font-black uppercase bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/30">Gemini AI</span>
                     </div>
-                    <p class="text-[11px] text-slate-500 dark:text-slate-400 hidden sm:block">SMC Confluence &bull; Key Levels Alert &bull; Sessions</p>
+                    <p class="text-[11px] text-slate-500 dark:text-slate-400 hidden sm:block">SMC Confluence &bull; Key Levels Alert &bull; Gemini Co-Pilot</p>
                 </div>
             </div>
 
-            <!-- Tab Switcher -->
-            <nav class="flex items-center gap-1 bg-slate-100 dark:bg-slate-800/80 p-1 rounded-xl border border-slate-200 dark:border-slate-700/60 order-3 sm:order-2 w-full sm:w-auto justify-center">
-                <button onclick="switchTab('pairs')" id="nav-tab-pairs" class="px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 bg-white dark:bg-slate-900 text-sky-600 dark:text-sky-400 shadow-sm">
+            <!-- Tab Switcher (Bao gồm Tab Gemini Pro mới) -->
+            <nav class="flex items-center gap-1 bg-slate-100 dark:bg-slate-800/80 p-1 rounded-xl border border-slate-200 dark:border-slate-700/60 order-3 sm:order-2 w-full sm:w-auto justify-center overflow-x-auto">
+                <button onclick="switchTab('pairs')" id="nav-tab-pairs" class="px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 bg-white dark:bg-slate-900 text-sky-600 dark:text-sky-400 shadow-sm whitespace-nowrap">
                     <i class="fa-solid fa-coins"></i> Cặp Tiền & Key Levels
                 </button>
-                <button onclick="switchTab('sessions')" id="nav-tab-sessions" class="px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white">
+                <button onclick="switchTab('sessions')" id="nav-tab-sessions" class="px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white whitespace-nowrap">
                     <i class="fa-solid fa-clock"></i> Phiên Giao Dịch
                 </button>
-                <button onclick="switchTab('journal')" id="nav-tab-journal" class="px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white">
+                <button onclick="switchTab('journal')" id="nav-tab-journal" class="px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white whitespace-nowrap">
                     <i class="fa-solid fa-book-journal-whills"></i> Nhật Ký Lệnh
+                </button>
+                <button onclick="switchTab('gemini')" id="nav-tab-gemini" class="px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 whitespace-nowrap">
+                    <i class="fa-solid fa-wand-magic-sparkles"></i> Gemini Pro
                 </button>
             </nav>
 
-            <!-- Quick Controls: Prominent API Key Button, Audio, Theme, Sync -->
+            <!-- Quick Controls -->
             <div class="flex items-center gap-2 order-2 sm:order-3">
-                <!-- NÚT CÀI ĐẶT API GIÁ NỔI BẬT -->
                 <button onclick="toggleApiSettingsModal(true)" id="btnOpenApiModal" class="relative group text-xs bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white font-bold px-3 py-1.5 rounded-xl shadow-md shadow-orange-500/20 transition-all flex items-center gap-1.5 active:scale-95">
                     <i class="fa-solid fa-key"></i>
                     <span>Cài Đặt API Giá</span>
                     <span id="apiStatusDot" class="w-2 h-2 rounded-full bg-emerald-300 ring-2 ring-white/50"></span>
                 </button>
 
-                <!-- Nút Bật/Tắt Chuông Cảnh Báo -->
                 <button onclick="toggleAlertAudioPermission()" id="btn-audio-alert" title="Bật/Tắt chuông và thông báo trình duyệt" class="text-xs bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 px-2.5 py-1.5 rounded-xl text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 transition flex items-center gap-1">
                     <i id="icon-audio" class="fa-solid fa-bell text-amber-500"></i>
                     <span class="hidden md:inline text-[11px] font-medium" id="txt-audio-status">Chuông: Bật</span>
                 </button>
 
-                <!-- Hướng Dẫn Online Web -->
                 <button onclick="toggleOnlineGuideModal(true)" title="Xem hướng dẫn đưa web lên Online miễn phí" class="text-xs bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 px-2.5 py-1.5 rounded-xl border border-emerald-500/30 transition flex items-center gap-1">
                     <i class="fa-solid fa-cloud-arrow-up"></i>
                     <span class="hidden lg:inline text-[11px] font-bold">Online Web</span>
                 </button>
 
-                <!-- Theme Selector -->
                 <div class="relative inline-flex items-center bg-slate-100 dark:bg-slate-800 rounded-xl p-0.5 border border-slate-200 dark:border-slate-700 text-xs">
                     <button onclick="setTheme('light')" id="btn-theme-light" title="Giao diện Sáng" class="px-2 py-1 rounded-lg text-slate-500 hover:text-slate-900 dark:hover:text-slate-100 transition">
                         <i class="fa-solid fa-sun"></i>
@@ -117,7 +121,6 @@
                     </button>
                 </div>
 
-                <!-- Export & Import JSON -->
                 <button onclick="exportData()" title="Xuất file JSON sao lưu" class="text-xs bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 px-2 py-1.5 rounded-xl text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 transition">
                     <i class="fa-solid fa-download"></i>
                 </button>
@@ -146,7 +149,6 @@
         <!-- TAB 1: CẶP TIỀN, SMC CHECKLIST & KEY LEVELS -->
         <section id="view-pairs" class="space-y-4">
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
-                <!-- Danh mục cặp tiền (Left sidebar - 4 cols on lg) -->
                 <div class="lg:col-span-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-sm space-y-3">
                     <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
                         <div class="flex items-center gap-2">
@@ -158,15 +160,12 @@
                         </button>
                     </div>
 
-                    <!-- Danh sách các cặp rendered via JS -->
                     <div id="pairListContainer" class="space-y-2 max-h-[320px] lg:max-h-[680px] overflow-y-auto pr-1">
                         <!-- Dynamic Pair Cards -->
                     </div>
                 </div>
 
-                <!-- Chi tiết Phân Tích + SMC Checklist + Key Levels (8 cols on lg) -->
                 <div class="lg:col-span-8 space-y-4">
-                    <!-- Pair Info Bar & Live Price Section -->
                     <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 sm:p-5 shadow-sm space-y-4">
                         <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800 gap-3">
                             <div>
@@ -190,13 +189,17 @@
                                         <option value="NEUTRAL">NEUTRAL (Chờ)</option>
                                     </select>
                                 </div>
+                                <button onclick="askGeminiAboutActivePair()" title="Nhờ Gemini Pro phân tích cặp này" class="text-xs text-purple-600 dark:text-purple-400 bg-purple-50 dark:bg-purple-950/40 hover:bg-purple-100 px-2.5 py-1.5 rounded-xl border border-purple-200 dark:border-purple-800 transition flex items-center gap-1">
+                                    <i class="fa-solid fa-wand-magic-sparkles"></i>
+                                    <span class="hidden sm:inline">Soi Lệnh AI</span>
+                                </button>
                                 <button onclick="deleteActivePair()" title="Xóa cặp này" class="text-xs text-rose-500 hover:text-rose-600 bg-rose-50 dark:bg-rose-500/10 hover:bg-rose-100 dark:hover:bg-rose-500/20 px-2.5 py-1.5 rounded-xl border border-rose-200 dark:border-rose-900/40 transition">
                                     <i class="fa-solid fa-trash-can"></i>
                                 </button>
                             </div>
                         </div>
 
-                        <!-- LIVE PRICE TICKER CONTROL & STATUS BAR -->
+                        <!-- LIVE PRICE TICKER CONTROL -->
                         <div class="bg-slate-50 dark:bg-slate-950/70 p-3 rounded-xl border border-slate-200 dark:border-slate-800 flex flex-wrap items-center justify-between gap-3 text-xs">
                             <div class="flex items-center gap-2">
                                 <div class="w-2 h-2 rounded-full bg-emerald-500" id="liveTickerDot"></div>
@@ -204,7 +207,7 @@
                                 <span class="text-[10px] text-slate-400 font-mono" id="liveFeedTimestamp">Cập nhật: Vừa xong</span>
                             </div>
                             <div class="flex items-center gap-2">
-                                <button onclick="simulatePriceTickPrompt()" title="Nhập giá hiện tại thủ công để kiểm tra phản ứng mốc cản" class="px-2 py-1 rounded-lg bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-medium hover:bg-slate-300 dark:hover:bg-slate-700 transition flex items-center gap-1">
+                                <button onclick="simulatePriceTickPrompt()" class="px-2 py-1 rounded-lg bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-medium hover:bg-slate-300 dark:hover:bg-slate-700 transition flex items-center gap-1">
                                     <i class="fa-solid fa-pen-to-square"></i> Cập Nhật Giá Tay
                                 </button>
                                 <button onclick="toggleLiveFeedAuto()" id="btnToggleLiveAuto" class="px-2.5 py-1 rounded-lg bg-sky-500 text-white font-medium hover:bg-sky-600 transition flex items-center gap-1">
@@ -213,7 +216,7 @@
                             </div>
                         </div>
 
-                        <!-- SMC KEY LEVELS: ĐỈNH / ĐÁY NGÀY, TUẦN, THÁNG -->
+                        <!-- SMC KEY LEVELS -->
                         <div class="bg-slate-100/70 dark:bg-slate-800/40 p-3.5 rounded-xl border border-slate-200 dark:border-slate-800 space-y-3">
                             <div class="flex items-center justify-between">
                                 <div class="flex items-center gap-2">
@@ -302,7 +305,7 @@
                             </div>
                         </div>
 
-                        <!-- SMC PRE-TRADE CHECKLIST RIÊNG BIỆT CHO CẶP NÀY -->
+                        <!-- SMC PRE-TRADE CHECKLIST -->
                         <div class="pt-1">
                             <div class="flex items-center justify-between mb-3">
                                 <div class="flex items-center gap-2">
@@ -317,7 +320,6 @@
                                 </button>
                             </div>
 
-                            <!-- Confluence items list -->
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-2" id="checklistForm">
                                 <label class="checklist-item flex items-start gap-2.5 p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 hover:border-sky-500/40 cursor-pointer bg-slate-50/70 dark:bg-slate-950/40 transition">
                                     <input type="checkbox" data-check="htfBias" onchange="toggleChecklistItem('htfBias', this.checked)" class="mt-0.5 w-4 h-4 rounded text-sky-600 focus:ring-0 focus:ring-offset-0 bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-700">
@@ -368,7 +370,6 @@
                                 </label>
                             </div>
 
-                            <!-- Đánh giá trạng thái vào lệnh -->
                             <div id="checklistStatusBanner" class="mt-3 py-2 px-3 rounded-xl text-xs font-semibold flex items-center justify-between transition-all bg-slate-100 dark:bg-slate-800/80 text-slate-600 dark:text-slate-400">
                                 <span id="checklistStatusText"><i class="fa-solid fa-hourglass-start mr-1.5"></i>Chờ hoàn thành đủ tiêu chuẩn trước khi mở vị thế...</span>
                                 <button onclick="openTradeModalWithCurrentPair()" class="text-xs bg-emerald-600 hover:bg-emerald-500 text-white px-2.5 py-1 rounded-lg font-medium transition flex items-center gap-1 shadow-sm">
@@ -400,7 +401,7 @@
             </div>
         </section>
 
-        <!-- TAB 2: KHUNG GIỜ PHIÊN GIAO DỊCH (SESSIONS & KILLZONES) -->
+        <!-- TAB 2: KHUNG GIỜ PHIÊN GIAO DỊCH -->
         <section id="view-sessions" class="hidden space-y-4">
             <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 sm:p-6 shadow-sm space-y-4">
                 <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-slate-100 dark:border-slate-800 gap-3">
@@ -424,9 +425,8 @@
                     </div>
                 </div>
 
-                <!-- Bảng 4 phiên Sydney, Tokyo, London, New York -->
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5" id="sessionsContainer">
-                    <!-- Rendered by JS -->
+                    <!-- Sessions Rendered by JS -->
                 </div>
 
                 <!-- Lịch sử Cảnh Báo Gần Nhất -->
@@ -444,9 +444,8 @@
             </div>
         </section>
 
-        <!-- TAB 3: NHẬT KÝ LỆNH ĐÃ VÀO (TRADE JOURNAL) -->
+        <!-- TAB 3: NHẬT KÝ LỆNH ĐÃ VÀO -->
         <section id="view-journal" class="hidden space-y-4">
-            <!-- Thống kê tổng quan KPI -->
             <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
                 <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-3.5 rounded-2xl shadow-sm">
                     <p class="text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase">Tổng Lệnh Đã Trade</p>
@@ -466,7 +465,6 @@
                 </div>
             </div>
 
-            <!-- Bảng danh sách nhật ký lệnh -->
             <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 sm:p-5 shadow-sm space-y-4">
                 <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100 dark:border-slate-800">
                     <div>
@@ -510,6 +508,127 @@
                 </div>
             </div>
         </section>
+
+        <!-- TAB 4: GEMINI PRO SMC ASSISTANT (TAB MỚI) -->
+        <section id="view-gemini" class="hidden space-y-4">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
+                <!-- Cột trái: Cài đặt Key & Quick Prompts (4 cols) -->
+                <div class="lg:col-span-4 space-y-4">
+                    <!-- Box Cấu hình Gemini Key -->
+                    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-sm space-y-3">
+                        <div class="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-slate-800">
+                            <div class="flex items-center gap-2">
+                                <div class="w-7 h-7 rounded-lg bg-gradient-to-tr from-purple-600 to-indigo-600 text-white flex items-center justify-center text-xs">
+                                    <i class="fa-solid fa-brain"></i>
+                                </div>
+                                <h3 class="font-bold text-xs uppercase tracking-wider text-slate-900 dark:text-white">Cấu Hình Gemini Pro</h3>
+                            </div>
+                            <span id="geminiKeyStatusBadge" class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500">Chưa có Key</span>
+                        </div>
+
+                        <div class="space-y-2 text-xs">
+                            <label class="block text-[11px] font-semibold text-slate-600 dark:text-slate-400">
+                                Google Gemini API Key:
+                            </label>
+                            <div class="flex gap-1.5">
+                                <input type="password" id="geminiApiKeyInput" class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl p-2 font-mono text-xs text-slate-900 dark:text-white focus:outline-none focus:border-purple-500" placeholder="AIzaSy...">
+                                <button onclick="saveGeminiApiKey()" class="px-3 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs shadow-sm transition">
+                                    Lưu
+                                </button>
+                            </div>
+                            <div class="flex justify-between items-center text-[10px] pt-1">
+                                <a href="https://aistudio.google.com/app/apikey" target="_blank" class="text-purple-600 dark:text-purple-400 hover:underline flex items-center gap-1 font-semibold">
+                                    <i class="fa-solid fa-arrow-up-right-from-square"></i> Lấy Key Gemini miễn phí
+                                </a>
+                                <button onclick="testGeminiConnection()" class="text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 underline">Thử kết nối</button>
+                            </div>
+                            <p class="text-[10.5px] text-slate-400 dark:text-slate-500 pt-1 leading-relaxed">
+                                <i>*Lưu ý: Nếu chưa nhập Key, Gemini sẽ chạy ở chế độ <b>Mô Phỏng Cố Vấn SMC</b> cục bộ trên trình duyệt để Huynh tham khảo setup!</i>
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Quick SMC Actions (Lệnh Nhanh) -->
+                    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-sm space-y-3">
+                        <div class="flex items-center gap-2 pb-2 border-b border-slate-100 dark:border-slate-800">
+                            <i class="fa-solid fa-bolt text-amber-500 text-xs"></i>
+                            <h3 class="font-bold text-xs uppercase tracking-wider text-slate-900 dark:text-white">Lệnh Hỏi Nhanh (1 Chạm)</h3>
+                        </div>
+
+                        <div class="space-y-1.5">
+                            <button onclick="sendQuickPrompt('audit')" class="w-full text-left p-2.5 rounded-xl bg-slate-50 hover:bg-purple-50 dark:bg-slate-950 dark:hover:bg-purple-950/30 border border-slate-200 dark:border-slate-800 hover:border-purple-300 dark:hover:border-purple-800/60 transition text-xs space-y-0.5">
+                                <div class="font-bold text-slate-800 dark:text-slate-200 flex items-center justify-between">
+                                    <span>🔍 Thẩm định Setup cặp hiện tại</span>
+                                    <i class="fa-solid fa-chevron-right text-[10px] text-slate-400"></i>
+                                </div>
+                                <div class="text-[10.5px] text-slate-500 dark:text-slate-400 line-clamp-1">Đối chiếu giá live, PDH/PDL và điểm Checklist của cặp đang chọn</div>
+                            </button>
+
+                            <button onclick="sendQuickPrompt('liquidity')" class="w-full text-left p-2.5 rounded-xl bg-slate-50 hover:bg-purple-50 dark:bg-slate-950 dark:hover:bg-purple-950/30 border border-slate-200 dark:border-slate-800 hover:border-purple-300 dark:hover:border-purple-800/60 transition text-xs space-y-0.5">
+                                <div class="font-bold text-slate-800 dark:text-slate-200 flex items-center justify-between">
+                                    <span>🎯 Chiến lược quét BSL / SSL</span>
+                                    <i class="fa-solid fa-chevron-right text-[10px] text-slate-400"></i>
+                                </div>
+                                <div class="text-[10.5px] text-slate-500 dark:text-slate-400 line-clamp-1">Kịch bản bẫy thanh khoản London Killzone & Inducement</div>
+                            </button>
+
+                            <button onclick="sendQuickPrompt('risk')" class="w-full text-left p-2.5 rounded-xl bg-slate-50 hover:bg-purple-50 dark:bg-slate-950 dark:hover:bg-purple-950/30 border border-slate-200 dark:border-slate-800 hover:border-purple-300 dark:hover:border-purple-800/60 transition text-xs space-y-0.5">
+                                <div class="font-bold text-slate-800 dark:text-slate-200 flex items-center justify-between">
+                                    <span>⚖️ Quản lý vốn & Lot size chuẩn</span>
+                                    <i class="fa-solid fa-chevron-right text-[10px] text-slate-400"></i>
+                                </div>
+                                <div class="text-[10.5px] text-slate-500 dark:text-slate-400 line-clamp-1">Quy tắc 1-2% rủi ro tài khoản & bảo toàn tâm lý kỉ luật</div>
+                            </button>
+
+                            <button onclick="clearGeminiChat()" class="w-full mt-2 py-1.5 rounded-xl border border-slate-200 dark:border-slate-800 text-[11px] font-semibold text-slate-500 hover:text-rose-500 hover:border-rose-300 dark:hover:border-rose-900 transition flex items-center justify-center gap-1.5">
+                                <i class="fa-solid fa-trash-arrow-up"></i> Xóa đoạn hội thoại
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Cột phải: Giao diện Chatbot Co-pilot (8 cols) -->
+                <div class="lg:col-span-8 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-sm flex flex-col h-[650px] overflow-hidden">
+                    <!-- Top header box -->
+                    <div class="p-3.5 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between bg-slate-50/50 dark:bg-slate-950/40">
+                        <div class="flex items-center gap-2.5">
+                            <div class="w-8 h-8 rounded-xl bg-gradient-to-tr from-purple-600 via-indigo-600 to-sky-500 flex items-center justify-center text-white shadow-sm">
+                                <i class="fa-solid fa-wand-magic-sparkles text-sm"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-xs sm:text-sm font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
+                                    Gemini Pro SMC Trading Advisor
+                                    <span class="text-[9px] bg-purple-500/10 text-purple-600 dark:text-purple-400 px-1.5 py-0.5 rounded border border-purple-500/20 font-bold uppercase">AI Co-Pilot</span>
+                                </h3>
+                                <p class="text-[10px] text-slate-400">Tư vấn cấu trúc thị trường, POI, Order Flow & Checklist kỷ luật</p>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center gap-2">
+                            <span id="geminiTypingIndicator" class="hidden text-[11px] text-purple-600 dark:text-purple-400 font-semibold animate-pulse flex items-center gap-1">
+                                <i class="fa-solid fa-circle-notch fa-spin"></i> Gemini đang suy nghĩ...
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Chat Message Area -->
+                    <div id="geminiChatContainer" class="flex-1 p-4 overflow-y-auto space-y-3.5 text-xs">
+                        <!-- Populated by JS -->
+                    </div>
+
+                    <!-- Chat Input Area -->
+                    <div class="p-3 border-t border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900">
+                        <form id="geminiChatForm" onsubmit="handleSendGeminiMessage(event)" class="flex gap-2">
+                            <input type="text" id="geminiChatInput" class="flex-1 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-2.5 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-purple-500 placeholder-slate-400" placeholder="Hỏi Gemini về setup hiện tại, cấu trúc nến, vùng FVG, bài học kỉ luật...">
+                            <button type="submit" id="btnSendGemini" class="px-4 py-2.5 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-bold text-xs shadow-md shadow-purple-500/20 transition flex items-center gap-1.5 active:scale-95">
+                                <span>Gửi</span>
+                                <i class="fa-solid fa-paper-plane text-[11px]"></i>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </section>
     </main>
 
     <!-- MODAL CÀI ĐẶT API GIÁ ĐA NGUỒN (FINNHUB / TWELVEDATA / BINANCE) -->
@@ -531,54 +650,50 @@
             </div>
 
             <div class="space-y-4 text-xs">
-                <!-- Chọn nguồn dữ liệu -->
                 <div>
                     <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
                         Nguồn Dữ Liệu Forex & Vàng (XAUUSD):
                     </label>
                     <select id="apiProviderSelect" onchange="onProviderChange()" class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl p-2.5 text-xs font-bold text-slate-900 dark:text-white focus:outline-none focus:border-sky-500">
-                        <option value="finnhub">Finnhub.io (Khuyên Dùng - Tốc độ cao, chuẩn OANDA)</option>
                         <option value="twelvedata" selected>Twelve Data (twelvedata.com - Hỗ trợ XAU/USD, EUR/USD)</option>
+                        <option value="finnhub">Finnhub.io (Tốc độ cao, chuẩn OANDA)</option>
                         <option value="public_relay">Public Fallback (Không cần Key - Dùng khi chỉ test)</option>
                     </select>
                 </div>
 
-                <!-- Ô nhập API Token -->
                 <div id="apiKeyInputWrapper">
                     <div class="flex justify-between items-center mb-1">
                         <label class="text-xs font-semibold text-slate-700 dark:text-slate-300">
                             Mã API Key (Token):
                         </label>
-                        <a id="apiProviderLink" href="https://finnhub.io/register" target="_blank" class="text-[11px] text-sky-500 hover:underline flex items-center gap-1 font-medium">
+                        <a id="apiProviderLink" href="https://twelvedata.com" target="_blank" class="text-[11px] text-sky-500 hover:underline flex items-center gap-1 font-medium">
                             <span>Lấy Key miễn phí 30s</span>
                             <i class="fa-solid fa-arrow-up-right-from-square text-[9px]"></i>
                         </a>
                     </div>
-                    <input type="text" id="apiTokenInput" value="3bec71367a4b4a9dbe36eb23d4698af2" class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl p-2.5 text-xs font-mono text-slate-900 dark:text-white focus:outline-none focus:border-sky-500" placeholder="vd: cr1234xxxxxx hoặc dán API Token vào đây">
+                    <input type="text" id="apiTokenInput" class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl p-2.5 text-xs font-mono text-slate-900 dark:text-white focus:outline-none focus:border-sky-500" placeholder="vd: dán API Token vào đây">
                 </div>
 
-                <!-- Tần suất cập nhật -->
                 <div>
                     <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
                         Tần Suất Quét Giá Tự Động (Polling Interval):
                     </label>
                     <select id="apiIntervalSelect" class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl p-2.5 text-xs font-medium text-slate-900 dark:text-white focus:outline-none focus:border-sky-500">
-                        <option value="3000">3 giây / lần (Rất nhanh - khuyến nghị Finnhub)</option>
+                        <option value="3000">3 giây / lần</option>
                         <option value="5000" selected>5 giây / lần (Cân bằng & tiết kiệm rate limit)</option>
                         <option value="10000">10 giây / lần</option>
                         <option value="30000">30 giây / lần</option>
                     </select>
                 </div>
 
-                <!-- Thông tin cơ chế đa luồng -->
                 <div class="p-3 bg-sky-50 dark:bg-sky-950/40 border border-sky-200 dark:border-sky-800 rounded-2xl text-[11px] text-sky-800 dark:text-sky-300 space-y-1.5">
                     <div class="font-bold flex items-center gap-1.5">
                         <i class="fa-solid fa-microchip"></i>
                         <span>Cơ Chế Phân Luồng Thông Minh Tự Động:</span>
                     </div>
                     <ul class="list-disc list-inside space-y-0.5 text-[10.5px] opacity-90 pl-1">
-                        <li><b>BTCUSDT & Crypto:</b> Chạy bằng <b>Binance WebSocket trực tiếp 24/7</b> (luôn miễn phí, không tốn quota API).</li>
-                        <li><b>XAUUSD & Forex:</b> Sẽ dùng API Key trên để kéo giá Bid/Ask thực từ sàn OANDA.</li>
+                        <li><b>BTCUSDT & Crypto:</b> Chạy bằng <b>Binance WebSocket trực tiếp 24/7</b>.</li>
+                        <li><b>XAUUSD & Forex:</b> Sẽ dùng API Key trên để kéo giá Bid/Ask thực.</li>
                         <li>Cuối tuần (T7 & CN), sàn Forex đóng cửa, hệ thống sẽ tự giữ mức giá đóng cửa phiên thứ Sáu.</li>
                     </ul>
                 </div>
@@ -673,7 +788,7 @@
         </div>
     </div>
 
-    <!-- MODAL HƯỚNG DẪN ĐƯA LÊN ONLINE MIỄN PHÍ 100% -->
+    <!-- MODAL HƯỚNG DẪN ĐƯA LÊN ONLINE MIỄN PHÍ -->
     <div id="onlineGuideModal" class="fixed inset-0 bg-slate-950/75 backdrop-blur-sm z-50 flex items-center justify-center p-3 hidden transition-opacity">
         <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-2xl w-full p-5 sm:p-6 shadow-2xl overflow-y-auto max-h-[92vh] space-y-4">
             <div class="flex justify-between items-center pb-3 border-b border-slate-100 dark:border-slate-800">
@@ -687,32 +802,10 @@
             </div>
 
             <div class="space-y-3.5 text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
-                <p>Chỉ cần 1 file HTML duy nhất này, Huynh có thể đưa lên mạng chạy vĩnh viễn 24/7, mở trên điện thoại (iPhone/Android) hay bất kỳ máy tính nào bằng đường link riêng (vd: <code class="text-sky-500 font-mono">huynh-smc.pages.dev</code> hoặc <code class="text-sky-500 font-mono">github.io</code>).</p>
-
-                <div class="bg-slate-50 dark:bg-slate-950 p-3.5 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-2">
-                    <div class="flex items-center gap-2 font-bold text-slate-900 dark:text-white text-sm">
-                        <i class="fa-brands fa-github text-slate-800 dark:text-slate-100 text-base"></i>
-                        <span>Cách 1: Sử dụng GitHub Pages (Khuyên Dùng, 2 phút)</span>
-                    </div>
-                    <ol class="list-decimal list-inside space-y-1 pl-1 text-[11px] text-slate-600 dark:text-slate-400">
-                        <li>Truy cập <a href="https://github.com" target="_blank" class="text-sky-500 underline font-semibold">github.com</a> và đăng ký tài khoản miễn phí.</li>
-                        <li>Bấm dấu <b>+</b> &rarr; Chọn <b>New repository</b> &rarr; Đặt tên (vd: <code class="text-sky-400">smc-trading-hub</code>) &rarr; Để <b>Public</b> &rarr; Bấm <b>Create repository</b>.</li>
-                        <li>Đổi tên file HTML này thành <b class="text-amber-500">index.html</b> rồi kéo thả tải lên (Upload files) &rarr; Bấm <b>Commit changes</b>.</li>
-                        <li>Vào tab <b>Settings</b> &rarr; Menu <b>Pages</b> bên trái &rarr; Chọn branch <b>main</b> rồi bấm <b>Save</b>.</li>
-                        <li>GitHub sẽ cấp cho Huynh link: <code class="text-emerald-500 font-mono font-bold">https://&lt;username&gt;.github.io/smc-trading-hub/</code>!</li>
-                    </ol>
-                </div>
-
-                <div class="bg-slate-50 dark:bg-slate-950 p-3.5 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-2">
-                    <div class="flex items-center gap-2 font-bold text-slate-900 dark:text-white text-sm">
-                        <i class="fa-solid fa-bolt text-amber-500 text-base"></i>
-                        <span>Cách 2: Kéo Thả 30 Giây Với Netlify Drop</span>
-                    </div>
-                    <ol class="list-decimal list-inside space-y-1 pl-1 text-[11px] text-slate-600 dark:text-slate-400">
-                        <li>Đổi tên file thành <b class="text-amber-500">index.html</b> và cho vào 1 thư mục bất kỳ.</li>
-                        <li>Mở trang <a href="https://app.netlify.com/drop" target="_blank" class="text-sky-500 underline font-semibold">app.netlify.com/drop</a>.</li>
-                        <li>Kéo thả thư mục đó vào. Trang web sẽ trực tiếp online ngay lập tức với link HTTPS có sẵn.</li>
-                    </ol>
+                <p>Chỉ cần 1 file HTML duy nhất này, Huynh có thể đưa lên mạng chạy vĩnh viễn 24/7, mở trên điện thoại (iPhone/Android) hay bất kỳ máy tính nào bằng đường link GitHub Pages của Huynh.</p>
+                <div class="bg-slate-50 dark:bg-slate-950 p-3.5 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-1">
+                    <div class="font-bold text-slate-900 dark:text-white">Đường link hiện tại của Huynh:</div>
+                    <code class="text-emerald-500 font-mono font-bold block pt-1">https://phuongkite2.github.io/phuongkite2/</code>
                 </div>
             </div>
 
@@ -724,11 +817,10 @@
 
     <!-- Footer -->
     <footer class="mt-auto border-t border-slate-200 dark:border-slate-800/80 py-3 text-center text-[11px] text-slate-500 dark:text-slate-500">
-        SMC Trading Hub Pro &bull; Multi-Asset Live Engine &bull; Kỷ Luật Là Chìa Khóa
+        SMC Trading Hub Pro &bull; Gemini Pro Co-Pilot &bull; Kỷ Luật Là Chìa Khóa Thành Công
     </footer>
 
     <script>
-        // Cấu trúc dữ liệu mặc định
         const DEFAULT_CHECKLIST = {
             htfBias: false,
             liquiditySweep: false,
@@ -761,22 +853,8 @@
                 desc: 'Bitcoin / Tether USD',
                 bias: 'BULLISH',
                 livePrice: 65400.00,
-                keyLevels: {
-                    pdh: '66200',
-                    pdl: '64800',
-                    pwh: '68500',
-                    pwl: '62000',
-                    pmh: '70000',
-                    pml: '58000'
-                },
-                checklist: {
-                    htfBias: true,
-                    liquiditySweep: true,
-                    validPoi: true,
-                    ltfChoch: true,
-                    rrRatio: true,
-                    newsFilter: true
-                },
+                keyLevels: { pdh: '66200', pdl: '64800', pwh: '68500', pwl: '62000', pmh: '70000', pml: '58000' },
+                checklist: { htfBias: true, liquiditySweep: true, validPoi: true, ltfChoch: true, rrRatio: true, newsFilter: true },
                 htfNotes: 'D1 phá đỉnh chu kỳ, dòng tiền tổ chức hấp thụ mạnh quanh vùng discount H4.',
                 ltfNotes: 'Đã hoàn thành sweep Sell-side liquidity khung M15, hình thành CHoCH tăng rõ nét.'
             },
@@ -786,22 +864,8 @@
                 desc: 'Vàng Spot / Đô La Mỹ',
                 bias: 'BULLISH',
                 livePrice: 2642.50,
-                keyLevels: {
-                    pdh: '2655.80',
-                    pdl: '2628.20',
-                    pwh: '2670.00',
-                    pwl: '2590.00',
-                    pmh: '2685.50',
-                    pml: '2530.00'
-                },
-                checklist: {
-                    htfBias: true,
-                    liquiditySweep: true,
-                    validPoi: true,
-                    ltfChoch: false,
-                    rrRatio: true,
-                    newsFilter: true
-                },
+                keyLevels: { pdh: '2655.80', pdl: '2628.20', pwh: '2670.00', pwl: '2590.00', pmh: '2685.50', pml: '2530.00' },
+                checklist: { htfBias: true, liquiditySweep: true, validPoi: true, ltfChoch: false, rrRatio: true, newsFilter: true },
                 htfNotes: 'D1 sóng tăng mạnh mẽ sau BOS 2600. H4 đang hồi về vùng FVG chưa lấp tại 2618 - 2624.',
                 ltfNotes: 'Chờ phiên London quét đáy PDL (2628), sau đó đợi M5 tạo CHoCH tăng để tìm entry buy.'
             },
@@ -811,22 +875,8 @@
                 desc: 'Euro / Đô La Mỹ',
                 bias: 'BEARISH',
                 livePrice: 1.0835,
-                keyLevels: {
-                    pdh: '1.0870',
-                    pdl: '1.0815',
-                    pwh: '1.0920',
-                    pwl: '1.0780',
-                    pmh: '1.0980',
-                    pml: '1.0720'
-                },
-                checklist: {
-                    htfBias: true,
-                    liquiditySweep: false,
-                    validPoi: true,
-                    ltfChoch: false,
-                    rrRatio: false,
-                    newsFilter: true
-                },
+                keyLevels: { pdh: '1.0870', pdl: '1.0815', pwh: '1.0920', pwl: '1.0780', pmh: '1.0980', pml: '1.0720' },
+                checklist: { htfBias: true, liquiditySweep: false, validPoi: true, ltfChoch: false, rrRatio: false, newsFilter: true },
                 htfNotes: 'H4 cấu trúc Giảm tiếp diễn. Giá đang hồi về Order Block giảm quanh 1.0860.',
                 ltfNotes: 'Cần đợi quét PDH 1.0870 trước khi kích hoạt phản ứng giảm tại M15.'
             },
@@ -836,14 +886,7 @@
                 desc: 'Bảng Anh / Đô La Mỹ',
                 bias: 'NEUTRAL',
                 livePrice: 1.2985,
-                keyLevels: {
-                    pdh: '1.3040',
-                    pdl: '1.2940',
-                    pwh: '1.3120',
-                    pwl: '1.2880',
-                    pmh: '1.3200',
-                    pml: '1.2800'
-                },
+                keyLevels: { pdh: '1.3040', pdl: '1.2940', pwh: '1.3120', pwl: '1.2880', pmh: '1.3200', pml: '1.2800' },
                 checklist: { ...DEFAULT_CHECKLIST },
                 htfNotes: 'Biên độ nén trong Asian range, chưa phá vỡ cấu trúc.',
                 ltfNotes: 'Đứng ngoài chờ London quét một trong hai đầu.'
@@ -854,21 +897,13 @@
                 desc: 'Đô La Mỹ / Yên Nhật',
                 bias: 'BULLISH',
                 livePrice: 149.50,
-                keyLevels: {
-                    pdh: '150.20',
-                    pdl: '148.80',
-                    pwh: '151.00',
-                    pwl: '147.50',
-                    pmh: '152.50',
-                    pml: '145.00'
-                },
+                keyLevels: { pdh: '150.20', pdl: '148.80', pwh: '151.00', pwl: '147.50', pmh: '152.50', pml: '145.00' },
                 checklist: { ...DEFAULT_CHECKLIST },
                 htfNotes: 'Xu hướng tăng H4 mạnh mẽ, lực mua bảo vệ tốt vùng FVG.',
                 ltfNotes: 'Đợi London test lại vùng discount để tìm setup buy.'
             }
         ];
 
-        // Biến trạng thái toàn cục
         let appState = {
             theme: 'dark',
             pairs: [],
@@ -881,17 +916,23 @@
             alertHistory: [],
             lastAlertTriggerMap: {},
             apiConfig: {
-                provider: 'finnhub', // 'finnhub' | 'twelvedata' | 'public_relay'
+                provider: 'twelvedata',
                 apiKey: '',
                 interval: 5000
-            }
+            },
+            geminiApiKey: '',
+            geminiChatHistory: [
+                {
+                    role: 'assistant',
+                    content: 'Xin chào Huynh! Muội là **Gemini Pro Co-Pilot** đồng hành cùng Huynh trong trường phái SMC (Smart Money Concepts). Huynh có thể hỏi muội về cấu trúc thị trường, kiểm tra checklist trước khi mở lệnh, hoặc bấm các lệnh nhanh bên trái để muội phân tích tức thì!'
+                }
+            ]
         };
 
         let liveTickerTimer = null;
         let btcWebSocket = null;
         let audioContext = null;
 
-        // Quản lý âm thanh Web Audio API
         function getAudioContext() {
             if (!audioContext) {
                 const AudioCtx = window.AudioContext || window.webkitAudioContext;
@@ -908,50 +949,33 @@
             try {
                 const ctx = getAudioContext();
                 if (!ctx) return;
-
                 const osc = ctx.createOscillator();
                 const gain = ctx.createGain();
                 osc.connect(gain);
                 gain.connect(ctx.destination);
-
                 const now = ctx.currentTime;
                 if (type === 'high') {
-                    osc.frequency.setValueAtTime(587.33, now); // D5
-                    osc.frequency.exponentialRampToValueAtTime(880, now + 0.15); // A5
+                    osc.frequency.setValueAtTime(587.33, now);
+                    osc.frequency.exponentialRampToValueAtTime(880, now + 0.15);
                     gain.gain.setValueAtTime(0.3, now);
                     gain.gain.exponentialRampToValueAtTime(0.01, now + 0.4);
                     osc.start(now);
                     osc.stop(now + 0.4);
                 } else if (type === 'low') {
-                    osc.frequency.setValueAtTime(440, now); // A4
-                    osc.frequency.exponentialRampToValueAtTime(261.63, now + 0.2); // C4
+                    osc.frequency.setValueAtTime(440, now);
+                    osc.frequency.exponentialRampToValueAtTime(261.63, now + 0.2);
                     gain.gain.setValueAtTime(0.3, now);
                     gain.gain.exponentialRampToValueAtTime(0.01, now + 0.45);
                     osc.start(now);
                     osc.stop(now + 0.45);
-                } else {
-                    osc.frequency.setValueAtTime(523.25, now);
-                    gain.gain.setValueAtTime(0.2, now);
-                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
-                    osc.start(now);
-                    osc.stop(now + 0.3);
                 }
-            } catch(e) {
-                console.warn("Audio Context alert:", e);
-            }
+            } catch(e) {}
         }
 
         function toggleAlertAudioPermission() {
             appState.alertAudioEnabled = !appState.alertAudioEnabled;
             getAudioContext();
-
-            if (appState.alertAudioEnabled) {
-                if ("Notification" in window && Notification.permission !== "granted" && Notification.permission !== "denied") {
-                    Notification.requestPermission();
-                }
-                playAlertSound('high');
-            }
-
+            if (appState.alertAudioEnabled) playAlertSound('high');
             updateAudioButtonUI();
             saveStateToStorage();
         }
@@ -968,14 +992,329 @@
             }
         }
 
-        // Modal Quản Lý API
+        // ==================== GEMINI PRO ASSISTANT LOGIC ====================
+
+        function saveGeminiApiKey() {
+            const input = document.getElementById('geminiApiKeyInput');
+            const key = input.value.trim();
+            appState.geminiApiKey = key;
+            saveStateToStorage();
+            updateGeminiKeyBadge();
+            alert("Đã lưu Gemini API Key thành công!");
+        }
+
+        function updateGeminiKeyBadge() {
+            const badge = document.getElementById('geminiKeyStatusBadge');
+            const input = document.getElementById('geminiApiKeyInput');
+            if (input && appState.geminiApiKey) input.value = appState.geminiApiKey;
+
+            if (badge) {
+                if (appState.geminiApiKey) {
+                    badge.innerText = "Đã Kết Nối Pro";
+                    badge.className = "text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30";
+                } else {
+                    badge.innerText = "Chế Độ Demo/Local";
+                    badge.className = "text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-200 dark:bg-slate-800 text-slate-500";
+                }
+            }
+        }
+
+        async function testGeminiConnection() {
+            if (!appState.geminiApiKey) {
+                alert("Huynh chưa nhập Gemini API Key! Vui lòng dán Key vào ô rồi bấm Lưu.");
+                return;
+            }
+            try {
+                const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${appState.geminiApiKey}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        contents: [{ parts: [{ text: "Chào bạn, hãy phản hồi ngắn gọn: Kết nối Gemini Pro thành công!" }] }]
+                    })
+                });
+                const data = await res.json();
+                if (data.candidates && data.candidates[0]) {
+                    alert("Kết nối Gemini Pro thành công rực rỡ!\n" + data.candidates[0].content.parts[0].text);
+                } else {
+                    alert("Phản hồi lỗi từ Google: " + (data.error?.message || "Kiểm tra lại Key"));
+                }
+            } catch (err) {
+                alert("Lỗi kết nối mạng: " + err.message);
+            }
+        }
+
+        function renderGeminiChat() {
+            const container = document.getElementById('geminiChatContainer');
+            if (!container) return;
+            container.innerHTML = '';
+
+            appState.geminiChatHistory.forEach(msg => {
+                const isUser = msg.role === 'user';
+                const wrapper = document.createElement('div');
+                wrapper.className = `flex gap-2.5 ${isUser ? 'justify-end' : 'justify-start'}`;
+
+                const avatar = isUser
+                    ? `<div class="w-7 h-7 rounded-xl bg-sky-600 text-white flex items-center justify-center text-xs font-bold shrink-0">H</div>`
+                    : `<div class="w-7 h-7 rounded-xl bg-gradient-to-tr from-purple-600 to-indigo-600 text-white flex items-center justify-center text-xs shrink-0"><i class="fa-solid fa-wand-magic-sparkles text-[10px]"></i></div>`;
+
+                const bubbleClass = isUser
+                    ? 'bg-sky-600 text-white rounded-2xl rounded-tr-none px-3.5 py-2.5 max-w-[85%] sm:max-w-[75%]'
+                    : 'bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-100 rounded-2xl rounded-tl-none px-3.5 py-2.5 max-w-[90%] sm:max-w-[85%] border border-slate-200 dark:border-slate-700/80 ai-msg-prose leading-relaxed';
+
+                const formattedContent = formatMarkdownSimple(msg.content);
+
+                wrapper.innerHTML = `
+                    ${!isUser ? avatar : ''}
+                    <div class="${bubbleClass}">
+                        ${formattedContent}
+                    </div>
+                    ${isUser ? avatar : ''}
+                `;
+                container.appendChild(wrapper);
+            });
+
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function formatMarkdownSimple(text) {
+            let escaped = text
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;");
+
+            escaped = escaped.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+            escaped = escaped.replace(/\*(.*?)\*/g, '<em>$1</em>');
+            escaped = escaped.replace(/`([^`]+)`/g, '<code>$1</code>');
+            escaped = escaped.replace(/\n\n/g, '<p></p>');
+            escaped = escaped.replace(/\n/g, '<br>');
+            return escaped;
+        }
+
+        async function handleSendGeminiMessage(e) {
+            if (e) e.preventDefault();
+            const input = document.getElementById('geminiChatInput');
+            const message = input.value.trim();
+            if (!message) return;
+
+            input.value = '';
+            appState.geminiChatHistory.push({ role: 'user', content: message });
+            renderGeminiChat();
+
+            const typing = document.getElementById('geminiTypingIndicator');
+            typing.classList.remove('hidden');
+
+            try {
+                if (appState.geminiApiKey) {
+                    const aiReply = await callGeminiApiLive(message);
+                    appState.geminiChatHistory.push({ role: 'assistant', content: aiReply });
+                } else {
+                    await new Promise(r => setTimeout(r, 800));
+                    const fallbackReply = generateLocalSmcAdvice(message);
+                    appState.geminiChatHistory.push({ role: 'assistant', content: fallbackReply });
+                }
+            } catch (err) {
+                appState.geminiChatHistory.push({ 
+                    role: 'assistant', 
+                    content: `⚠️ Có lỗi khi kết nối Gemini: ${err.message}. Đã chuyển sang phản hồi cố vấn nội bộ.` 
+                });
+            } finally {
+                typing.classList.add('hidden');
+                saveStateToStorage();
+                renderGeminiChat();
+            }
+        }
+
+        async function callGeminiApiLive(userPrompt) {
+            const pair = getActivePair();
+            const currentScore = getPairChecklistScore(pair);
+            const systemContext = `Bạn là chuyên gia cố vấn trading cao cấp theo trường phái SMC (Smart Money Concepts) và ICT. 
+Thông tin cặp tiền hiện tại trader đang xem:
+- Cặp: ${pair.name}
+- Giá hiện tại: ${pair.livePrice}
+- HTF Bias: ${pair.bias}
+- Đỉnh/Đáy: PDH: ${pair.keyLevels?.pdh || 'N/A'}, PDL: ${pair.keyLevels?.pdl || 'N/A'}, PWH: ${pair.keyLevels?.pwh || 'N/A'}, PWL: ${pair.keyLevels?.pwl || 'N/A'}
+- Điểm checklist đạt: ${currentScore}/6
+- Ghi chú HTF: ${pair.htfNotes || 'Trống'}
+- Ghi chú LTF: ${pair.ltfNotes || 'Trống'}
+
+Hãy đưa ra phản hồi súc tích, mang tính kỷ luật cao, phân tích cấu trúc BSL/SSL, POI (OB/FVG), thanh khoản và quản lý rủi ro (Risk management). Xưng hô thân thiện là 'Muội' và gọi người dùng là 'Huynh'.`;
+
+            const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${appState.geminiApiKey}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    systemInstruction: { parts: [{ text: systemContext }] },
+                    contents: [{ parts: [{ text: userPrompt }] }]
+                })
+            });
+
+            const data = await res.json();
+            if (data.candidates && data.candidates[0]) {
+                return data.candidates[0].content.parts[0].text;
+            } else {
+                throw new Error(data.error?.message || "Không nhận được phản hồi");
+            }
+        }
+
+        function generateLocalSmcAdvice(promptText) {
+            const pair = getActivePair();
+            const score = getPairChecklistScore(pair);
+            const p = promptText.toLowerCase();
+
+            if (p.includes('thẩm định') || p.includes('setup') || p.includes('soi')) {
+                return `**[Cố Vấn SMC] Thẩm định cặp ${pair.name}:**\n\n` +
+                       `• **HTF Bias:** Hiện đang là **${pair.bias}**.\n` +
+                       `• **Checklist:** Đạt **${score}/6** tiêu chuẩn.\n` +
+                       `• **Mốc quan sát:** Đỉnh ngày (PDH) là \`${pair.keyLevels.pdh || 'chưa nhập'}\`, Đáy ngày (PDL) là \`${pair.keyLevels.pdl || 'chưa nhập'}\`.\n\n` +
+                       `**Lời khuyên:** ${score >= 5 ? 'Setup có độ đồng thuận cao! Huynh hãy kiên nhẫn đợi quét thanh khoản và xuất hiện tín hiệu CHoCH M1/M5 trước khi đặt lệnh.' : 'Chưa đủ điều kiện an toàn (dưới 5/6). Huynh tuyệt đối không FOMO vào lệnh sớm khi Big Boys chưa bẫy xong thanh khoản!'}`;
+            }
+
+            if (p.includes('quét') || p.includes('thanh khoản') || p.includes('bsl') || p.includes('ssl')) {
+                return `**[Chiến Lược Thanh Khoản Cho ${pair.name}]:**\n\n` +
+                       `1. **Buy-side Liquidity (BSL):** Nằm tập trung phía trên đỉnh ${pair.keyLevels.pdh || 'PDH'}. Khi giá quét qua đây mà rút râu đóng nến ngược lại, đó là tín hiệu Judas Swing tìm cơ hội Short.\n` +
+                       `2. **Sell-side Liquidity (SSL):** Nằm dưới đáy ${pair.keyLevels.pdl || 'PDL'}. Vùng này là nơi retail trader đặt SL nhiều nhất, cá mập sẽ quét sạch trước khi đẩy giá tăng lên theo xu hướng HTF Bullish.`;
+            }
+
+            if (p.includes('vốn') || p.includes('lot') || p.includes('risk')) {
+                return `**[Quy Tắc Quản Trị Rủi Ro SMC]:**\n\n` +
+                       `• **Rủi ro tối đa:** Mỗi lệnh không vượt quá **1% - 2%** tổng tài khoản.\n` +
+                       `• **Công thức tính Lot:** \`Lot = (Số $ chấp nhận lỗ) / (Số pips khoảng cách từ Entry đến SL x Giá trị 1 pip)\`.\n` +
+                       `• **Tỉ lệ R:R:** Tuyệt đối không vào lệnh nếu R:R nhỏ hơn **1:2.5**. Nếu dính 2 lệnh thua liên tiếp trong ngày, Huynh nên đóng máy nghỉ ngơi để bảo vệ tâm lý!`;
+            }
+
+            return `Muội đã ghi nhận câu hỏi của Huynh về: *"${promptText}"*.\n\nTheo quy tắc SMC: Luôn xác định **Dòng tiền tổ chức (Order Flow)** trên khung lớn (H4/D1), chờ giá quét **Liquidity Pool (PDH/PDL)**, sau đó tìm điểm vào lệnh tại **Vùng Discount/Premium** có khối OB chưa khai thác và FVG rõ ràng!`;
+        }
+
+        function sendQuickPrompt(type) {
+            const pair = getActivePair();
+            if (type === 'audit') {
+                document.getElementById('geminiChatInput').value = `Nhờ muội thẩm định setup và checklist của cặp ${pair.name} ở thời điểm hiện tại.`;
+            } else if (type === 'liquidity') {
+                document.getElementById('geminiChatInput').value = `Phân tích bẫy thanh khoản BSL/SSL và kịch bản quét râu cho cặp ${pair.name}.`;
+            } else if (type === 'risk') {
+                document.getElementById('geminiChatInput').value = `Nhắc lại cho huynh quy tắc quản lý vốn 1% và cách giữ kỉ luật khi dính SL.`;
+            }
+            handleSendGeminiMessage();
+        }
+
+        function askGeminiAboutActivePair() {
+            switchTab('gemini');
+            sendQuickPrompt('audit');
+        }
+
+        function clearGeminiChat() {
+            if (confirm("Huynh có muốn xóa lịch sử đoạn chat với Gemini?")) {
+                appState.geminiChatHistory = [
+                    {
+                        role: 'assistant',
+                        content: 'Đoạn hội thoại đã được làm mới. Muội sẵn sàng hỗ trợ Huynh soi các setup SMC tiếp theo!'
+                    }
+                ];
+                saveStateToStorage();
+                renderGeminiChat();
+            }
+        }
+
+        // ==================== CÁC HÀM CŨ & ĐIỀU HƯỚNG TABS ====================
+
+        function switchTab(tab) {
+            appState.activeTab = tab;
+            const views = {
+                pairs: document.getElementById('view-pairs'),
+                sessions: document.getElementById('view-sessions'),
+                journal: document.getElementById('view-journal'),
+                gemini: document.getElementById('view-gemini')
+            };
+
+            const navBtns = {
+                pairs: document.getElementById('nav-tab-pairs'),
+                sessions: document.getElementById('nav-tab-sessions'),
+                journal: document.getElementById('nav-tab-journal'),
+                gemini: document.getElementById('nav-tab-gemini')
+            };
+
+            Object.keys(views).forEach(key => {
+                if (key === tab) {
+                    views[key].classList.remove('hidden');
+                    if (key === 'gemini') {
+                        navBtns[key].className = "px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-sm whitespace-nowrap";
+                    } else {
+                        navBtns[key].className = "px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 bg-white dark:bg-slate-900 text-sky-600 dark:text-sky-400 shadow-sm whitespace-nowrap";
+                    }
+                } else {
+                    views[key].classList.add('hidden');
+                    if (key === 'gemini') {
+                        navBtns[key].className = "px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 whitespace-nowrap";
+                    } else {
+                        navBtns[key].className = "px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white whitespace-nowrap";
+                    }
+                }
+            });
+
+            if (tab === 'sessions') renderSessions();
+            if (tab === 'journal') {
+                renderJournalTable();
+                calculateJournalStats();
+            }
+            if (tab === 'gemini') {
+                renderGeminiChat();
+                updateGeminiKeyBadge();
+            }
+        }
+
+        // Khởi động ứng dụng
+        function initApp() {
+            const savedTheme = localStorage.getItem('smc_theme_mode') || 'dark';
+            setTheme(savedTheme, false);
+
+            const savedState = localStorage.getItem('smc_hub_final_data');
+            if (savedState) {
+                try {
+                    const parsed = JSON.parse(savedState);
+                    appState.pairs = parsed.pairs || INITIAL_PAIRS;
+                    appState.trades = parsed.trades || [];
+                    appState.sessions = parsed.sessions || INITIAL_SESSIONS;
+                    appState.currentPairId = parsed.currentPairId || 'BTCUSDT';
+                    appState.alertAudioEnabled = parsed.alertAudioEnabled !== undefined ? parsed.alertAudioEnabled : true;
+                    appState.alertHistory = parsed.alertHistory || [];
+                    if (parsed.apiConfig) appState.apiConfig = parsed.apiConfig;
+                    if (parsed.geminiApiKey) appState.geminiApiKey = parsed.geminiApiKey;
+                    if (parsed.geminiChatHistory) appState.geminiChatHistory = parsed.geminiChatHistory;
+                } catch(e) {
+                    appState.pairs = INITIAL_PAIRS;
+                }
+            } else {
+                appState.pairs = INITIAL_PAIRS;
+            }
+
+            appState.pairs.forEach(p => {
+                if (!p.checklist) p.checklist = { ...DEFAULT_CHECKLIST };
+                if (!p.keyLevels) p.keyLevels = { ...DEFAULT_KEY_LEVELS };
+                if (p.livePrice === undefined) p.livePrice = 0;
+            });
+
+            updateAudioButtonUI();
+            updateApiStatusBadge();
+            updateGeminiKeyBadge();
+            renderPairList();
+            renderActivePairDetails();
+            renderSessions();
+            renderAlertHistory();
+            renderFilterPairOptions();
+            renderJournalTable();
+            calculateJournalStats();
+            renderGeminiChat();
+
+            startClockAndSessionMonitor();
+            startLivePriceFeed();
+        }
+
         function toggleApiSettingsModal(show) {
             const modal = document.getElementById('apiSettingsModal');
             if (show) {
-                document.getElementById('apiProviderSelect').value = appState.apiConfig.provider || 'finnhub';
+                document.getElementById('apiProviderSelect').value = appState.apiConfig.provider || 'twelvedata';
                 document.getElementById('apiTokenInput').value = appState.apiConfig.apiKey || '';
                 document.getElementById('apiIntervalSelect').value = appState.apiConfig.interval || 5000;
-                onProviderChange();
                 modal.classList.remove('hidden');
             } else {
                 modal.classList.add('hidden');
@@ -983,80 +1322,32 @@
         }
 
         function onProviderChange() {
-            const provider = document.getElementById('apiProviderSelect').value;
-            const inputWrapper = document.getElementById('apiKeyInputWrapper');
+            const p = document.getElementById('apiProviderSelect').value;
             const link = document.getElementById('apiProviderLink');
-
-            if (provider === 'finnhub') {
-                inputWrapper.classList.remove('hidden');
-                link.href = 'https://finnhub.io/register';
-                link.innerHTML = `<span>Lấy Finnhub Key (Miễn phí 30s)</span> <i class="fa-solid fa-arrow-up-right-from-square text-[9px]"></i>`;
-            } else if (provider === 'twelvedata') {
-                inputWrapper.classList.remove('hidden');
-                link.href = 'https://twelvedata.com';
-                link.innerHTML = `<span>Lấy TwelveData Key</span> <i class="fa-solid fa-arrow-up-right-from-square text-[9px]"></i>`;
-            } else {
-                inputWrapper.classList.add('hidden');
-            }
+            if (p === 'twelvedata') link.href = 'https://twelvedata.com';
+            else link.href = 'https://finnhub.io';
         }
 
         function saveApiSettings() {
             appState.apiConfig.provider = document.getElementById('apiProviderSelect').value;
             appState.apiConfig.apiKey = document.getElementById('apiTokenInput').value.trim();
             appState.apiConfig.interval = parseInt(document.getElementById('apiIntervalSelect').value) || 5000;
-
             saveStateToStorage();
             updateApiStatusBadge();
             toggleApiSettingsModal(false);
-
-            // Khởi động lại luồng quét giá với cài đặt mới
             startLivePriceFeed();
-            alert("Đã lưu cấu hình API thành công! Hệ thống đang kết nối dữ liệu...");
+            alert("Đã lưu cấu hình API!");
         }
 
         async function testApiConnection() {
-            const provider = document.getElementById('apiProviderSelect').value;
             const key = document.getElementById('apiTokenInput').value.trim();
-
-            if (provider === 'finnhub') {
-                if (!key) {
-                    alert("Vui lòng dán Finnhub API Key vào ô trước khi kiểm tra!");
-                    return;
-                }
-                try {
-                    const res = await fetch(`https://finnhub.io/api/v1/quote?symbol=OANDA:XAU_USD&token=${key}`);
-                    if (res.ok) {
-                        const data = await res.json();
-                        if (data && data.c) {
-                            alert(`Kết nối Finnhub thành công rực rỡ!\nGiá Vàng (XAUUSD) hiện tại: ${data.c}`);
-                        } else {
-                            alert("API Key hợp lệ nhưng chưa trả về giá (có thể thị trường đang đóng phiên).");
-                        }
-                    } else {
-                        alert("Không thể kết nối! Kiểm tra lại mã API Key.");
-                    }
-                } catch(e) {
-                    alert("Lỗi kết nối mạng: " + e.message);
-                }
-            } else if (provider === 'twelvedata') {
-                if (!key) {
-                    alert("Vui lòng dán Twelve Data API Key vào ô trước khi kiểm tra!");
-                    return;
-                }
-                try {
-                    const res = await fetch(`https://api.twelvedata.com/price?symbol=XAU/USD&apikey=${key}`);
-                    const data = await res.json();
-                    if (data && data.price) {
-                        alert(`Kết nối Twelve Data thành công!\nGiá XAU/USD: ${data.price}`);
-                    } else {
-                        alert("Twelve Data phản hồi: " + (data.message || "Kiểm tra lại Key."));
-                    }
-                } catch(e) {
-                    alert("Lỗi mạng: " + e.message);
-                }
-            } else {
-                alert("Chế độ Public Fallback đang sẵn sàng.");
-            }
+            if (!key) { alert("Chưa nhập Key!"); return; }
+            try {
+                const res = await fetch(`https://api.twelvedata.com/price?symbol=XAU/USD&apikey=${key}`);
+                const data = await res.json();
+                if (data && data.price) alert(`Twelve Data kết nối OK! Giá XAU/USD: ${data.price}`);
+                else alert("Lỗi: " + (data.message || "Kiểm tra lại Key"));
+            } catch(e) { alert("Lỗi mạng: " + e.message); }
         }
 
         function updateApiStatusBadge() {
@@ -1068,21 +1359,17 @@
             }
         }
 
-        // Bộ Định Tuyến Giá Realtime
         function startLivePriceFeed() {
             connectActivePairLiveStream();
-
             if (liveTickerTimer) clearInterval(liveTickerTimer);
             liveTickerTimer = setInterval(() => {
-                if (!appState.autoFetchLive) return;
-                fetchForexAndGoldPrices();
+                if (appState.autoFetchLive) fetchForexAndGoldPrices();
             }, appState.apiConfig.interval || 5000);
         }
 
         function connectActivePairLiveStream() {
             const pair = getActivePair();
             if (!pair) return;
-
             const dot = document.getElementById('liveTickerDot');
             const statusTxt = document.getElementById('liveFeedStatusText');
 
@@ -1092,30 +1379,20 @@
             }
 
             const cleanName = pair.name.toUpperCase();
-            if (cleanName.includes('BTC') || cleanName.includes('ETH') || cleanName.includes('SOL')) {
+            if (cleanName.includes('BTC') || cleanName.includes('ETH')) {
                 const streamSymbol = cleanName.includes('USDT') ? cleanName.toLowerCase() : `${cleanName.toLowerCase()}usdt`;
                 statusTxt.innerText = `WebSocket Trực Tiếp: Binance (${streamSymbol.toUpperCase()})`;
                 dot.className = "w-2 h-2 rounded-full bg-emerald-500 animate-pulse";
-
                 try {
                     btcWebSocket = new WebSocket(`wss://stream.binance.com:9443/ws/${streamSymbol}@ticker`);
                     btcWebSocket.onmessage = (event) => {
                         const data = JSON.parse(event.data);
-                        if (data && data.c) {
-                            applyNewLivePrice(pair, parseFloat(data.c));
-                        }
+                        if (data && data.c) applyNewLivePrice(pair, parseFloat(data.c));
                     };
-                    btcWebSocket.onerror = () => {
-                        statusTxt.innerText = `Live Feed: Chế độ REST Fallback`;
-                    };
-                } catch(e) {
-                    console.log("WebSocket err:", e);
-                }
+                } catch(e){}
             } else {
-                const provName = appState.apiConfig.apiKey ? (appState.apiConfig.provider === 'finnhub' ? 'Finnhub Live' : 'TwelveData Live') : 'Market Fallback Feed';
-                statusTxt.innerText = `Live Feed: ${pair.name} (${provName})`;
+                statusTxt.innerText = `Live Feed: ${pair.name} (TwelveData Polling)`;
                 dot.className = "w-2 h-2 rounded-full bg-sky-500";
-                // Lấy ngay 1 lần lập tức
                 fetchForexAndGoldPrices();
             }
         }
@@ -1123,33 +1400,13 @@
         async function fetchForexAndGoldPrices() {
             const pair = getActivePair();
             if (!pair) return;
-
             const cleanName = pair.name.toUpperCase();
-            // Nếu là Crypto đã có WebSocket lo
             if (cleanName.includes('BTC') || cleanName.includes('ETH')) return;
 
             const key = appState.apiConfig.apiKey;
-            const provider = appState.apiConfig.provider;
-
-            if (provider === 'finnhub' && key) {
+            if (key) {
                 try {
-                    let finnhubSymbol = `OANDA:${cleanName.slice(0,3)}_${cleanName.slice(3)}`;
-                    if (cleanName === 'XAUUSD') finnhubSymbol = 'OANDA:XAU_USD';
-
-                    const res = await fetch(`https://finnhub.io/api/v1/quote?symbol=${finnhubSymbol}&token=${key}`);
-                    if (res.ok) {
-                        const data = await res.json();
-                        if (data && data.c && data.c > 0) {
-                            applyNewLivePrice(pair, parseFloat(data.c));
-                            return;
-                        }
-                    }
-                } catch(e) {
-                    console.warn("Finnhub poll failed:", e);
-                }
-            } else if (provider === 'twelvedata' && key) {
-                try {
-                    let tdSymbol = `${cleanName.slice(0,3)}/${cleanName.slice(3)}`;
+                    let tdSymbol = cleanName === 'XAUUSD' ? 'XAU/USD' : `${cleanName.slice(0,3)}/${cleanName.slice(3)}`;
                     const res = await fetch(`https://api.twelvedata.com/price?symbol=${tdSymbol}&apikey=${key}`);
                     if (res.ok) {
                         const data = await res.json();
@@ -1158,26 +1415,13 @@
                             return;
                         }
                     }
-                } catch(e) {
-                    console.warn("TwelveData poll failed:", e);
-                }
+                } catch(e){}
             }
-
-            // Fallback: Nếu cuối tuần hoặc chưa có API Key -> nhẹ nhàng mô phỏng vi dao động quanh giá sàn chốt
-            simulateGentleFluctuation(pair);
-        }
-
-        function simulateGentleFluctuation(pair) {
-            if (!pair.livePrice) pair.livePrice = 2640.0;
-            const delta = (Math.random() - 0.49) * 0.35;
-            const newPrice = +(Number(pair.livePrice) + delta).toFixed(2);
-            applyNewLivePrice(pair, newPrice);
         }
 
         function applyNewLivePrice(pair, newPrice) {
             const oldPrice = Number(pair.livePrice) || newPrice;
             pair.livePrice = newPrice;
-
             updateLivePriceDisplay(newPrice, oldPrice);
             calculateKeyLevelDistances();
             checkKeyLevelPriceAlert(pair, newPrice);
@@ -1188,29 +1432,21 @@
         function updateLivePriceDisplay(newPrice, oldPrice) {
             const badge = document.getElementById('livePriceVal');
             const container = document.getElementById('livePriceBadgeContainer');
-            if (!newPrice) {
-                badge.innerText = '--';
-                return;
-            }
+            if (!badge) return;
             badge.innerText = Number(newPrice).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 5 });
-
-            // Hiệu ứng flash xanh / đỏ khi giá biến động
             if (newPrice > oldPrice) {
-                container.classList.remove('price-flash-red');
-                container.classList.add('price-flash-green');
+                container?.classList.add('price-flash-green');
+                setTimeout(() => container?.classList.remove('price-flash-green'), 600);
             } else if (newPrice < oldPrice) {
-                container.classList.remove('price-flash-green');
-                container.classList.add('price-flash-red');
+                container?.classList.add('price-flash-red');
+                setTimeout(() => container?.classList.remove('price-flash-red'), 600);
             }
-            setTimeout(() => {
-                container.classList.remove('price-flash-green', 'price-flash-red');
-            }, 600);
         }
 
         function simulatePriceTickPrompt() {
             const pair = getActivePair();
             if (!pair) return;
-            const input = prompt(`Nhập giá thị trường mới cho cặp ${pair.name} (để kiểm tra chuông cảnh báo):`, pair.livePrice || '');
+            const input = prompt(`Nhập giá mới cho ${pair.name}:`, pair.livePrice || '');
             if (input && !isNaN(input)) {
                 applyNewLivePrice(pair, parseFloat(input));
                 saveStateToStorage();
@@ -1220,160 +1456,88 @@
         function toggleLiveFeedAuto() {
             appState.autoFetchLive = !appState.autoFetchLive;
             const btn = document.getElementById('btnToggleLiveAuto');
-            if (appState.autoFetchLive) {
-                btn.className = "px-2.5 py-1 rounded-lg bg-sky-500 text-white font-medium hover:bg-sky-600 transition flex items-center gap-1";
-                btn.innerHTML = `<i class="fa-solid fa-rotate"></i> Auto: BẬT`;
-            } else {
-                btn.className = "px-2.5 py-1 rounded-lg bg-slate-300 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-medium hover:bg-slate-400 transition flex items-center gap-1";
-                btn.innerHTML = `<i class="fa-solid fa-pause"></i> Auto: TẮT`;
-            }
+            btn.innerHTML = appState.autoFetchLive 
+                ? `<i class="fa-solid fa-rotate"></i> Auto: BẬT` 
+                : `<i class="fa-solid fa-pause"></i> Auto: TẮT`;
         }
 
         function updateActivePairKeyLevel(levelKey, value) {
             const pair = getActivePair();
             if (!pair) return;
-
             if (!pair.keyLevels) pair.keyLevels = { ...DEFAULT_KEY_LEVELS };
             pair.keyLevels[levelKey] = value.trim();
-
             saveStateToStorage();
             calculateKeyLevelDistances();
             checkKeyLevelPriceAlert(pair, Number(pair.livePrice));
-
             showAutoSaveIndicator();
         }
 
         function calculateKeyLevelDistances() {
             const pair = getActivePair();
             if (!pair || !pair.livePrice) return;
-
             const curr = Number(pair.livePrice);
             const kl = pair.keyLevels || {};
-
             const map = [
-                { id: 'badge-pdh-dist', val: kl.pdh },
-                { id: 'badge-pdl-dist', val: kl.pdl },
-                { id: 'badge-pwh-dist', val: kl.pwh },
-                { id: 'badge-pwl-dist', val: kl.pwl },
-                { id: 'badge-pmh-dist', val: kl.pmh },
-                { id: 'badge-pml-dist', val: kl.pml }
+                { id: 'badge-pdh-dist', val: kl.pdh }, { id: 'badge-pdl-dist', val: kl.pdl },
+                { id: 'badge-pwh-dist', val: kl.pwh }, { id: 'badge-pwl-dist', val: kl.pwl },
+                { id: 'badge-pmh-dist', val: kl.pmh }, { id: 'badge-pml-dist', val: kl.pml }
             ];
-
             map.forEach(item => {
                 const el = document.getElementById(item.id);
                 if (!el) return;
-                if (!item.val || isNaN(item.val)) {
-                    el.innerText = '--';
-                    el.className = 'text-[10px] text-slate-400';
-                    return;
-                }
-                const target = Number(item.val);
-                const diff = (curr - target);
-                const pct = ((diff / target) * 100).toFixed(2);
-
-                if (Math.abs(diff) < 0.0001) {
-                    el.innerText = 'ĐANG CHẠM!';
-                    el.className = 'text-[10px] font-bold text-amber-500 animate-pulse';
-                } else if (diff > 0) {
-                    el.innerText = `+${pct}% (Trên)`;
-                    el.className = 'text-[10px] text-slate-500 dark:text-slate-400';
-                } else {
-                    el.innerText = `${pct}% (Dưới)`;
-                    el.className = 'text-[10px] text-slate-500 dark:text-slate-400';
-                }
+                if (!item.val || isNaN(item.val)) { el.innerText = '--'; return; }
+                const diff = curr - Number(item.val);
+                const pct = ((diff / Number(item.val)) * 100).toFixed(2);
+                el.innerText = `${diff > 0 ? '+' : ''}${pct}%`;
             });
         }
 
         function checkKeyLevelPriceAlert(pair, newPrice) {
             if (!pair || !pair.keyLevels || !newPrice) return;
-
             const kl = pair.keyLevels;
-            const threshold = 0.0008; // Dung sai quét biên ~0.08%
-
-            const checkLevel = (name, val, isHigh) => {
+            const check = (name, val, isHigh) => {
                 if (!val || isNaN(val)) return;
                 const target = Number(val);
                 const diffRatio = Math.abs(newPrice - target) / target;
-                const alertKey = `${pair.id}_${name}`;
-
-                const isCrossed = isHigh ? (newPrice >= target) : (newPrice <= target);
-
-                if (diffRatio <= threshold || isCrossed) {
-                    const nowTime = Date.now();
-                    const lastTrigger = appState.lastAlertTriggerMap[alertKey] || 0;
-
-                    if (nowTime - lastTrigger > 45000) {
-                        appState.lastAlertTriggerMap[alertKey] = nowTime;
+                if (diffRatio <= 0.0008 || (isHigh ? newPrice >= target : newPrice <= target)) {
+                    const alertKey = `${pair.id}_${name}`;
+                    const now = Date.now();
+                    if (now - (appState.lastAlertTriggerMap[alertKey] || 0) > 45000) {
+                        appState.lastAlertTriggerMap[alertKey] = now;
                         triggerSMCAlert(pair, name, target, newPrice, isHigh);
                     }
                 }
             };
-
-            checkLevel('PDH (Đỉnh Ngày)', kl.pdh, true);
-            checkLevel('PDL (Đáy Ngày)', kl.pdl, false);
-            checkLevel('PWH (Đỉnh Tuần)', kl.pwh, true);
-            checkLevel('PWL (Đáy Tuần)', kl.pwl, false);
-            checkLevel('PMH (Đỉnh Tháng)', kl.pmh, true);
-            checkLevel('PML (Đáy Tháng)', kl.pml, false);
+            check('PDH', kl.pdh, true); check('PDL', kl.pdl, false);
+            check('PWH', kl.pwh, true); check('PWL', kl.pwl, false);
         }
 
         function triggerSMCAlert(pair, levelName, targetPrice, currentPrice, isHigh) {
-            const actionText = isHigh ? 'CHẠM / QUÉT ĐỈNH (BSL)' : 'CHẠM / QUÉT ĐÁY (SSL)';
-            const msg = `⚠️ [${pair.name}] Giá hiện tại ${currentPrice} vừa ${actionText} tại mốc ${levelName} (${targetPrice})!`;
-
             playAlertSound(isHigh ? 'high' : 'low');
-
-            if ("Notification" in window && Notification.permission === "granted") {
-                try {
-                    new Notification(`SMC Cảnh Báo: ${pair.name}`, {
-                        body: msg,
-                        icon: 'https://placehold.co/128x128/0284c7/ffffff?text=SMC'
-                    });
-                } catch(e) {}
-            }
-
+            const msg = `⚠️ [${pair.name}] Giá ${currentPrice} vừa chạm/quét mốc ${levelName} (${targetPrice})!`;
             const banner = document.getElementById('liveAlertBanner');
-            const bannerText = document.getElementById('liveAlertBannerText');
-            bannerText.innerText = msg;
+            document.getElementById('liveAlertBannerText').innerText = msg;
             banner.classList.remove('hidden');
 
-            const historyItem = {
-                id: Date.now(),
-                pair: pair.name,
-                level: levelName,
-                price: currentPrice,
-                time: new Date().toLocaleTimeString('vi-VN')
-            };
-            appState.alertHistory.unshift(historyItem);
+            appState.alertHistory.unshift({
+                id: Date.now(), pair: pair.name, level: levelName, price: currentPrice, time: new Date().toLocaleTimeString('vi-VN')
+            });
             if (appState.alertHistory.length > 20) appState.alertHistory.pop();
             saveStateToStorage();
             renderAlertHistory();
         }
 
-        function dismissAlertBanner() {
-            document.getElementById('liveAlertBanner').classList.add('hidden');
-        }
+        function dismissAlertBanner() { document.getElementById('liveAlertBanner').classList.add('hidden'); }
 
         function renderAlertHistory() {
             const list = document.getElementById('alertHistoryList');
             if (!list) return;
-
-            if (appState.alertHistory.length === 0) {
-                list.innerHTML = `<p class="text-slate-400 py-2 text-center text-[11px]">Chưa có cảnh báo nào được kích hoạt.</p>`;
-                return;
-            }
-
             list.innerHTML = appState.alertHistory.map(item => `
                 <div class="flex items-center justify-between p-2 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200/80 dark:border-slate-800/80">
-                    <div class="flex items-center gap-2">
-                        <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
-                        <span class="font-bold text-slate-800 dark:text-slate-200">${item.pair}</span>
-                        <span class="text-amber-600 dark:text-amber-400 font-semibold">${item.level}</span>
-                        <span class="text-slate-500 font-mono text-[11px] font-bold">@ ${item.price}</span>
-                    </div>
+                    <span class="font-bold text-slate-800 dark:text-slate-200">${item.pair} &bull; ${item.level} @ ${item.price}</span>
                     <span class="text-[10px] text-slate-400 font-mono">${item.time}</span>
                 </div>
-            `).join('');
+            `).join('') || '<p class="text-slate-400 text-center py-2 text-[11px]">Chưa có cảnh báo.</p>';
         }
 
         function clearAlertHistory() {
@@ -1383,91 +1547,29 @@
         }
 
         function startClockAndSessionMonitor() {
-            function tick() {
+            setInterval(() => {
                 const now = new Date();
                 document.getElementById('clockLocalTime').innerText = now.toLocaleTimeString('vi-VN', { hour12: false });
-                const utcHours = String(now.getUTCHours()).padStart(2, '0');
-                const utcMins = String(now.getUTCMinutes()).padStart(2, '0');
-                const utcSecs = String(now.getUTCSeconds()).padStart(2, '0');
-                document.getElementById('clockUtcTime').innerText = `${utcHours}:${utcMins}:${utcSecs}`;
-
-                if (appState.activeTab === 'sessions') renderSessions();
-            }
-            tick();
-            setInterval(tick, 1000);
-        }
-
-        function isSessionActive(openStr, closeStr) {
-            const now = new Date();
-            const currMins = now.getHours() * 60 + now.getMinutes();
-
-            const [oH, oM] = openStr.split(':').map(Number);
-            const [cH, cM] = closeStr.split(':').map(Number);
-            const openMins = oH * 60 + oM;
-            const closeMins = cH * 60 + cM;
-
-            if (openMins < closeMins) {
-                return currMins >= openMins && currMins < closeMins;
-            } else {
-                return currMins >= openMins || currMins < closeMins;
-            }
+                document.getElementById('clockUtcTime').innerText = now.toUTCString().slice(17, 25);
+            }, 1000);
         }
 
         function renderSessions() {
-            const container = document.getElementById('sessionsContainer');
-            if (!container) return;
-
-            container.innerHTML = appState.sessions.map((ses, idx) => {
-                const active = isSessionActive(ses.open, ses.close);
-                const borderClass = active 
-                    ? 'border-emerald-500 shadow-md shadow-emerald-500/10 bg-emerald-50/30 dark:bg-emerald-950/20' 
-                    : 'border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-950/50';
-
-                const statusBadge = active 
-                    ? `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500 text-white flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-white animate-ping"></span>ĐANG MỞ CỬA</span>`
-                    : `<span class="px-2 py-0.5 rounded text-[10px] font-semibold bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-400">ĐÃ ĐÓNG</span>`;
-
-                return `
-                    <div class="p-4 rounded-2xl border ${borderClass} space-y-3 transition-all">
-                        <div class="flex items-center justify-between">
-                            <div>
-                                <span class="text-[10px] font-bold text-sky-500 uppercase tracking-wider block">${ses.code}</span>
-                                <h4 class="font-bold text-sm text-slate-900 dark:text-white">${ses.name}</h4>
-                            </div>
-                            ${statusBadge}
-                        </div>
-
-                        <div class="space-y-1.5 pt-1">
-                            <div class="text-[11px] font-medium text-slate-500 dark:text-slate-400 flex justify-between">
-                                <span>Khung giờ (Giờ VN):</span>
-                                <span class="text-sky-500 font-mono text-[10px]">Tự sửa giờ</span>
-                            </div>
-                            <div class="grid grid-cols-2 gap-2">
-                                <div>
-                                    <label class="text-[10px] text-slate-400 block mb-0.5">Giờ Mở</label>
-                                    <input type="time" value="${ses.open}" onchange="updateSessionTime(${idx}, 'open', this.value)" class="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg p-1 text-xs font-mono font-bold text-slate-800 dark:text-white focus:outline-none focus:border-sky-500">
-                                </div>
-                                <div>
-                                    <label class="text-[10px] text-slate-400 block mb-0.5">Giờ Đóng</label>
-                                    <input type="time" value="${ses.close}" onchange="updateSessionTime(${idx}, 'close', this.value)" class="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg p-1 text-xs font-mono font-bold text-slate-800 dark:text-white focus:outline-none focus:border-sky-500">
-                                </div>
-                            </div>
-                        </div>
-
-                        <p class="text-[11px] text-slate-500 dark:text-slate-400 pt-1 border-t border-slate-100 dark:border-slate-800/80 leading-snug">
-                            <i class="fa-solid fa-crosshairs text-[10px] mr-1 text-amber-500"></i>${ses.note}
-                        </p>
+            const c = document.getElementById('sessionsContainer');
+            if (!c) return;
+            c.innerHTML = appState.sessions.map((ses, idx) => `
+                <div class="p-3.5 rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-950/50 space-y-2">
+                    <div class="flex justify-between items-center">
+                        <span class="font-bold text-sm text-slate-900 dark:text-white">${ses.name}</span>
+                        <span class="text-[10px] text-sky-500 font-bold">${ses.code}</span>
                     </div>
-                `;
-            }).join('');
-        }
-
-        function updateSessionTime(idx, field, val) {
-            if (appState.sessions[idx]) {
-                appState.sessions[idx][field] = val;
-                saveStateToStorage();
-                renderSessions();
-            }
+                    <div class="grid grid-cols-2 gap-1.5 text-xs">
+                        <input type="time" value="${ses.open}" onchange="appState.sessions[${idx}].open=this.value;saveStateToStorage()" class="bg-white dark:bg-slate-900 border p-1 rounded font-mono">
+                        <input type="time" value="${ses.close}" onchange="appState.sessions[${idx}].close=this.value;saveStateToStorage()" class="bg-white dark:bg-slate-900 border p-1 rounded font-mono">
+                    </div>
+                    <p class="text-[11px] text-slate-400 leading-snug">${ses.note}</p>
+                </div>
+            `).join('');
         }
 
         function getPairChecklistScore(pair) {
@@ -1478,10 +1580,8 @@
         function toggleChecklistItem(key, checked) {
             const pair = getActivePair();
             if (!pair) return;
-
             if (!pair.checklist) pair.checklist = { ...DEFAULT_CHECKLIST };
             pair.checklist[key] = checked;
-
             saveStateToStorage();
             renderPairList();
             updateChecklistStatusDisplay();
@@ -1490,7 +1590,6 @@
         function resetActiveChecklist() {
             const pair = getActivePair();
             if (!pair) return;
-
             pair.checklist = { ...DEFAULT_CHECKLIST };
             saveStateToStorage();
             renderActivePairDetails();
@@ -1500,81 +1599,30 @@
         function updateChecklistStatusDisplay() {
             const pair = getActivePair();
             if (!pair) return;
-
             const score = getPairChecklistScore(pair);
-            const scoreBadge = document.getElementById('checklistScoreBadge');
-            scoreBadge.innerText = `${score}/6 Tiêu Chuẩn`;
-
-            const banner = document.getElementById('checklistStatusBanner');
-            const text = document.getElementById('checklistStatusText');
-
-            if (score === 6) {
-                banner.className = "mt-3 py-2.5 px-3 rounded-xl text-xs font-semibold flex items-center justify-between transition-all bg-emerald-100 dark:bg-emerald-950/70 text-emerald-800 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800";
-                text.innerHTML = `<i class="fa-solid fa-circle-check mr-1.5 text-emerald-500"></i><b>High-Probability Setup!</b> Đạt 6/6 điều kiện SMC. Có thể tự tin mở lệnh theo kế hoạch.`;
-                scoreBadge.className = 'text-xs font-bold px-2 py-0.5 rounded-full bg-emerald-500 text-white';
-            } else if (score >= 4) {
-                banner.className = "mt-3 py-2.5 px-3 rounded-xl text-xs font-semibold flex items-center justify-between transition-all bg-sky-100 dark:bg-sky-950/70 text-sky-800 dark:text-sky-300 border border-sky-300 dark:border-sky-800";
-                text.innerHTML = `<i class="fa-solid fa-circle-info mr-1.5 text-sky-500"></i>Đã đạt ${score}/6 tiêu chuẩn. Chú ý thêm phản ứng tại Key Level hoặc LTF CHoCH.`;
-                scoreBadge.className = 'text-xs font-bold px-2 py-0.5 rounded-full bg-sky-500 text-white';
-            } else {
-                banner.className = "mt-3 py-2.5 px-3 rounded-xl text-xs font-semibold flex items-center justify-between transition-all bg-slate-100 dark:bg-slate-800/80 text-slate-600 dark:text-slate-400";
-                text.innerHTML = `<i class="fa-solid fa-hourglass-half mr-1.5"></i>Chưa đủ tín hiệu an toàn (${score}/6). Hãy kiên nhẫn chờ Big Boys tạo thanh khoản rõ ràng.`;
-                scoreBadge.className = 'text-xs font-bold px-2 py-0.5 rounded-full bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300';
-            }
+            document.getElementById('checklistScoreBadge').innerText = `${score}/6 Tiêu Chuẩn`;
         }
 
         function renderPairList() {
             const container = document.getElementById('pairListContainer');
-            container.innerHTML = '';
-
-            if (appState.pairs.length === 0) {
-                container.innerHTML = `<p class="text-xs text-slate-400 text-center py-4">Chưa có cặp tiền nào.</p>`;
-                return;
-            }
-
-            appState.pairs.forEach(pair => {
-                const isActive = pair.id === appState.currentPairId;
-                const score = getPairChecklistScore(pair);
-
-                let biasBadgeClass = 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400';
-                if (pair.bias === 'BULLISH') biasBadgeClass = 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-400';
-                if (pair.bias === 'BEARISH') biasBadgeClass = 'bg-rose-100 text-rose-700 dark:bg-rose-950/60 dark:text-rose-400';
-
-                let scoreBadgeClass = 'text-slate-500 bg-slate-100 dark:bg-slate-800';
-                if (score === 6) scoreBadgeClass = 'text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/30 font-bold';
-                else if (score >= 4) scoreBadgeClass = 'text-sky-600 dark:text-sky-400 bg-sky-50 dark:bg-sky-900/30';
-
-                const priceDisplay = pair.livePrice ? Number(pair.livePrice).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 5 }) : '--';
-
-                const card = document.createElement('div');
-                card.className = `p-3 rounded-2xl cursor-pointer border transition-all flex items-center justify-between ${
-                    isActive 
-                        ? 'bg-sky-50/70 dark:bg-sky-950/30 border-sky-500 shadow-sm' 
-                        : 'bg-slate-50/50 dark:bg-slate-950/50 border-slate-200/80 dark:border-slate-800/80 hover:border-slate-300 dark:hover:border-slate-700'
-                }`;
-                card.onclick = () => selectPair(pair.id);
-
-                card.innerHTML = `
-                    <div class="space-y-0.5">
-                        <div class="flex items-center gap-2">
-                            <span class="font-bold text-sm text-slate-900 dark:text-white">${pair.name}</span>
-                            <span class="text-[10px] font-bold px-1.5 py-0.5 rounded ${biasBadgeClass}">${pair.bias}</span>
+            if (!container) return;
+            container.innerHTML = appState.pairs.map(p => {
+                const isActive = p.id === appState.currentPairId;
+                const score = getPairChecklistScore(p);
+                return `
+                    <div onclick="selectPair('${p.id}')" class="p-3 rounded-2xl cursor-pointer border flex justify-between items-center ${isActive ? 'bg-sky-50/70 dark:bg-sky-950/30 border-sky-500 shadow-sm' : 'border-slate-200/80 dark:border-slate-800/80'}">
+                        <div>
+                            <div class="font-bold text-sm text-slate-900 dark:text-white">${p.name} <span class="text-[10px] text-sky-500">(${p.bias})</span></div>
+                            <div class="text-[11px] text-slate-400">${score}/6 SMC</div>
                         </div>
-                        <p class="text-[11px] text-slate-500 dark:text-slate-400 line-clamp-1">${pair.desc || 'Forex/Crypto'}</p>
-                    </div>
-                    <div class="text-right space-y-1">
-                        <div class="text-xs font-mono font-bold text-slate-900 dark:text-slate-100">${priceDisplay}</div>
-                        <span class="text-[10px] px-1.5 py-0.5 rounded font-medium ${scoreBadgeClass}">
-                            <i class="fa-solid fa-list-check text-[9px] mr-1"></i>${score}/6
-                        </span>
+                        <div class="font-mono text-xs font-bold">${Number(p.livePrice).toFixed(2)}</div>
                     </div>
                 `;
-                container.appendChild(card);
-            });
+            }).join('');
         }
 
-        function selectPair(pairId) {
-            appState.currentPairId = pairId;
+        function selectPair(id) {
+            appState.currentPairId = id;
             renderPairList();
             renderActivePairDetails();
             connectActivePairLiveStream();
@@ -1587,22 +1635,10 @@
         function renderActivePairDetails() {
             const pair = getActivePair();
             if (!pair) return;
-
             document.getElementById('currentPairTitle').innerText = pair.name;
-            document.getElementById('currentPairDesc').innerText = pair.desc || 'Thông tin cặp tiền';
-            document.getElementById('dailyBiasSelect').value = pair.bias || 'NEUTRAL';
-
+            document.getElementById('currentPairDesc').innerText = pair.desc;
+            document.getElementById('dailyBiasSelect').value = pair.bias;
             updateLivePriceDisplay(pair.livePrice, pair.livePrice);
-
-            const badge = document.getElementById('currentPairBiasBadge');
-            badge.innerText = pair.bias;
-            if (pair.bias === 'BULLISH') {
-                badge.className = 'text-xs font-bold px-2 py-0.5 rounded uppercase bg-emerald-100 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-400';
-            } else if (pair.bias === 'BEARISH') {
-                badge.className = 'text-xs font-bold px-2 py-0.5 rounded uppercase bg-rose-100 text-rose-700 dark:bg-rose-950/60 dark:text-rose-400';
-            } else {
-                badge.className = 'text-xs font-bold px-2 py-0.5 rounded uppercase bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400';
-            }
 
             const kl = pair.keyLevels || { ...DEFAULT_KEY_LEVELS };
             document.getElementById('keyLevelPDH').value = kl.pdh || '';
@@ -1612,454 +1648,178 @@
             document.getElementById('keyLevelPMH').value = kl.pmh || '';
             document.getElementById('keyLevelPML').value = kl.pml || '';
 
-            calculateKeyLevelDistances();
-
             document.getElementById('pairHtfInput').value = pair.htfNotes || '';
             document.getElementById('pairLtfInput').value = pair.ltfNotes || '';
 
-            const checklist = pair.checklist || { ...DEFAULT_CHECKLIST };
+            const cl = pair.checklist || { ...DEFAULT_CHECKLIST };
             document.querySelectorAll('#checklistForm input[type="checkbox"]').forEach(cb => {
-                const key = cb.getAttribute('data-check');
-                cb.checked = !!checklist[key];
+                cb.checked = !!cl[cb.getAttribute('data-check')];
             });
-
             updateChecklistStatusDisplay();
+            calculateKeyLevelDistances();
         }
 
-        function updateActivePairField(fieldName, value) {
+        function updateActivePairField(k, v) {
             const pair = getActivePair();
             if (!pair) return;
-
-            pair[fieldName] = value;
+            pair[k] = v;
             saveStateToStorage();
-
-            if (fieldName === 'bias') renderActivePairDetails();
+            if (k === 'bias') renderActivePairDetails();
             renderPairList();
             showAutoSaveIndicator();
         }
 
         function showAutoSaveIndicator() {
             const ind = document.getElementById('autoSaveIndicator');
-            ind.classList.remove('hidden');
-            clearTimeout(window._autoSaveTimer);
-            window._autoSaveTimer = setTimeout(() => {
-                ind.classList.add('hidden');
-            }, 1400);
+            ind?.classList.remove('hidden');
+            setTimeout(() => ind?.classList.add('hidden'), 1200);
         }
 
         function promptAddPair() {
-            const symbol = prompt("Nhập mã cặp tiền muốn theo dõi (vd: GBPJPY, AUDUSD, SOLUSDT):");
-            if (!symbol || !symbol.trim()) return;
-
-            const cleanSymbol = symbol.trim().toUpperCase();
-            if (appState.pairs.some(p => p.id === cleanSymbol)) {
-                alert("Cặp tiền này đã có trong danh mục quan sát rồi Huynh ơi!");
-                return;
-            }
-
-            const desc = prompt("Nhập ghi chú hoặc mô tả cặp tiền:", cleanSymbol) || cleanSymbol;
-
-            const newPair = {
-                id: cleanSymbol,
-                name: cleanSymbol,
-                desc: desc,
-                bias: 'NEUTRAL',
-                livePrice: 0,
-                keyLevels: { ...DEFAULT_KEY_LEVELS },
-                checklist: { ...DEFAULT_CHECKLIST },
-                htfNotes: '',
-                ltfNotes: ''
-            };
-
-            appState.pairs.push(newPair);
-            appState.currentPairId = newPair.id;
-
+            const s = prompt("Nhập mã cặp tiền:");
+            if (!s) return;
+            const id = s.trim().toUpperCase();
+            appState.pairs.push({
+                id, name: id, desc: id, bias: 'NEUTRAL', livePrice: 0,
+                keyLevels: { ...DEFAULT_KEY_LEVELS }, checklist: { ...DEFAULT_CHECKLIST }
+            });
+            appState.currentPairId = id;
             saveStateToStorage();
             renderPairList();
             renderActivePairDetails();
-            renderFilterPairOptions();
             connectActivePairLiveStream();
         }
 
         function deleteActivePair() {
-            const pair = getActivePair();
-            if (!pair) return;
-
-            if (confirm(`Huynh có chắc muốn xóa cặp ${pair.name} khỏi danh mục?`)) {
-                appState.pairs = appState.pairs.filter(p => p.id !== pair.id);
-                if (appState.pairs.length > 0) {
-                    appState.currentPairId = appState.pairs[0].id;
-                } else {
-                    appState.currentPairId = null;
-                }
+            if (confirm("Xóa cặp này?")) {
+                appState.pairs = appState.pairs.filter(p => p.id !== appState.currentPairId);
+                appState.currentPairId = appState.pairs[0]?.id || '';
                 saveStateToStorage();
                 renderPairList();
                 renderActivePairDetails();
-                renderFilterPairOptions();
-            }
-        }
-
-        function openTradeModalWithCurrentPair() {
-            const pair = getActivePair();
-            toggleTradeModal(true);
-            if (pair) {
-                document.getElementById('modalPair').value = pair.name;
-                const score = getPairChecklistScore(pair);
-                document.getElementById('modalSetup').value = `SMC Confluence (${score}/6) & Key Level Sweep: ${pair.bias}`;
-                if (pair.livePrice) document.getElementById('modalEntry').value = pair.livePrice;
             }
         }
 
         function toggleTradeModal(show) {
-            const modal = document.getElementById('tradeModal');
-            if (show) {
-                modal.classList.remove('hidden');
-                if (!document.getElementById('modalPair').value && getActivePair()) {
-                    document.getElementById('modalPair').value = getActivePair().name;
-                }
-            } else {
-                modal.classList.add('hidden');
-                document.getElementById('tradeForm').reset();
-            }
+            document.getElementById('tradeModal').classList.toggle('hidden', !show);
         }
 
-        function toggleOnlineGuideModal(show) {
-            const modal = document.getElementById('onlineGuideModal');
-            if (show) modal.classList.remove('hidden');
-            else modal.classList.add('hidden');
+        function openTradeModalWithCurrentPair() {
+            toggleTradeModal(true);
+            const pair = getActivePair();
+            document.getElementById('modalPair').value = pair.name;
+            document.getElementById('modalEntry').value = pair.livePrice;
         }
 
-        function autoFillRValue(result) {
-            const rInput = document.getElementById('modalR');
-            if (result === 'LOSS' && !rInput.value) {
-                rInput.value = '-1';
-            } else if (result === 'BE' && !rInput.value) {
-                rInput.value = '0';
-            } else if (result === 'WIN' && !rInput.value) {
-                rInput.value = '3';
-            }
+        function autoFillRValue(res) {
+            const r = document.getElementById('modalR');
+            if (res === 'LOSS') r.value = '-1';
+            else if (res === 'WIN') r.value = '3';
+            else if (res === 'BE') r.value = '0';
         }
 
         function submitNewTrade(e) {
             e.preventDefault();
-            const now = new Date();
-            const dateStr = `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
-
-            const newTrade = {
+            appState.trades.unshift({
                 id: Date.now(),
-                timestamp: dateStr,
-                pair: document.getElementById('modalPair').value.trim().toUpperCase(),
+                timestamp: new Date().toLocaleDateString('vi-VN'),
+                pair: document.getElementById('modalPair').value,
                 direction: document.getElementById('modalDirection').value,
-                entry: document.getElementById('modalEntry').value || '-',
-                sl: document.getElementById('modalSl').value || '-',
-                tp: document.getElementById('modalTp').value || '-',
+                entry: document.getElementById('modalEntry').value,
+                sl: document.getElementById('modalSl').value,
+                tp: document.getElementById('modalTp').value,
                 setup: document.getElementById('modalSetup').value,
                 result: document.getElementById('modalResult').value,
                 rr: parseFloat(document.getElementById('modalR').value) || 0,
-                notes: document.getElementById('modalNotes').value || '-'
-            };
-
-            appState.trades.unshift(newTrade);
-            saveStateToStorage();
-            renderJournalTable();
-            calculateJournalStats();
-            renderFilterPairOptions();
-            toggleTradeModal(false);
-
-            switchTab('journal');
-        }
-
-        function deleteTradeRecord(id) {
-            if (confirm("Huynh có muốn xóa bản ghi lệnh này không?")) {
-                appState.trades = appState.trades.filter(t => t.id !== id);
-                saveStateToStorage();
-                renderJournalTable();
-                calculateJournalStats();
-            }
-        }
-
-        function renderFilterPairOptions() {
-            const select = document.getElementById('filterPairSelect');
-            const currentVal = select.value || 'ALL';
-            select.innerHTML = '<option value="ALL">Tất cả cặp</option>';
-
-            const uniquePairs = Array.from(new Set([
-                ...appState.pairs.map(p => p.name),
-                ...appState.trades.map(t => t.pair)
-            ])).filter(Boolean);
-
-            uniquePairs.forEach(p => {
-                const opt = document.createElement('option');
-                opt.value = p;
-                opt.innerText = p;
-                select.appendChild(opt);
+                notes: document.getElementById('modalNotes').value
             });
-
-            select.value = currentVal;
+            saveStateToStorage();
+            toggleTradeModal(false);
+            switchTab('journal');
         }
 
         function renderJournalTable() {
             const tbody = document.getElementById('tradeJournalTbody');
-            tbody.innerHTML = '';
-
-            const filterPair = document.getElementById('filterPairSelect').value;
-            const filteredTrades = filterPair === 'ALL' 
-                ? appState.trades 
-                : appState.trades.filter(t => t.pair === filterPair);
-
-            if (filteredTrades.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="9" class="text-center py-8 text-slate-400 dark:text-slate-500">Chưa có giao dịch nào phù hợp.</td></tr>`;
-                return;
-            }
-
-            filteredTrades.forEach(trade => {
-                const tr = document.createElement('tr');
-                tr.className = "hover:bg-slate-50 dark:hover:bg-slate-800/40 transition";
-
-                const isBuy = trade.direction === 'BUY';
-                const posBadge = isBuy 
-                    ? 'bg-sky-100 text-sky-700 dark:bg-sky-950/70 dark:text-sky-400 border border-sky-300 dark:border-sky-800' 
-                    : 'bg-amber-100 text-amber-700 dark:bg-amber-950/70 dark:text-amber-400 border border-amber-300 dark:border-amber-800';
-
-                let resBadge = 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400';
-                if (trade.result === 'WIN') resBadge = 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/70 dark:text-emerald-400 border border-emerald-300 dark:border-emerald-800';
-                else if (trade.result === 'LOSS') resBadge = 'bg-rose-100 text-rose-700 dark:bg-rose-950/70 dark:text-rose-400 border border-rose-300 dark:border-rose-800';
-                else if (trade.result === 'BE') resBadge = 'bg-slate-200 text-slate-700 dark:bg-slate-800 dark:text-slate-300';
-
-                const rrColor = trade.rr > 0 
-                    ? 'text-emerald-600 dark:text-emerald-400 font-bold' 
-                    : (trade.rr < 0 ? 'text-rose-600 dark:text-rose-400 font-bold' : 'text-slate-500 font-medium');
-
-                tr.innerHTML = `
-                    <td class="py-3 px-3 text-slate-500 dark:text-slate-400 whitespace-nowrap">${trade.timestamp}</td>
-                    <td class="py-3 px-3 font-bold text-slate-900 dark:text-white whitespace-nowrap">${trade.pair}</td>
-                    <td class="py-3 px-3 whitespace-nowrap">
-                        <span class="text-[10px] font-bold px-2 py-0.5 rounded ${posBadge}">${trade.direction}</span>
+            if (!tbody) return;
+            tbody.innerHTML = appState.trades.map(t => `
+                <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/40">
+                    <td class="p-2.5">${t.timestamp}</td>
+                    <td class="p-2.5 font-bold">${t.pair}</td>
+                    <td class="p-2.5">${t.direction}</td>
+                    <td class="p-2.5">${t.setup}</td>
+                    <td class="p-2.5 font-mono">${t.entry} | ${t.sl} | ${t.tp}</td>
+                    <td class="p-2.5 font-bold">${t.result}</td>
+                    <td class="p-2.5 font-bold">${t.rr}R</td>
+                    <td class="p-2.5 text-slate-400">${t.notes}</td>
+                    <td class="p-2.5 text-center">
+                        <button onclick="deleteTradeRecord(${t.id})" class="text-rose-500"><i class="fa-solid fa-trash-can"></i></button>
                     </td>
-                    <td class="py-3 px-3 text-slate-700 dark:text-slate-300 max-w-[180px] truncate" title="${trade.setup}">${trade.setup}</td>
-                    <td class="py-3 px-3 text-[11px] text-slate-500 dark:text-slate-400 whitespace-nowrap">
-                        E: ${trade.entry} | SL: ${trade.sl} | TP: ${trade.tp}
-                    </td>
-                    <td class="py-3 px-3 whitespace-nowrap">
-                        <span class="text-[10px] font-bold px-2 py-0.5 rounded ${resBadge}">${trade.result}</span>
-                    </td>
-                    <td class="py-3 px-3 ${rrColor} whitespace-nowrap">
-                        ${trade.rr > 0 ? '+' : ''}${trade.rr}R
-                    </td>
-                    <td class="py-3 px-3 text-slate-600 dark:text-slate-400 max-w-[150px] truncate" title="${trade.notes}">${trade.notes}</td>
-                    <td class="py-3 px-3 text-center whitespace-nowrap">
-                        <button onclick="deleteTradeRecord(${trade.id})" class="text-rose-500 hover:text-rose-700 dark:hover:text-rose-400 p-1 transition" title="Xóa lệnh">
-                            <i class="fa-solid fa-trash-can"></i>
-                        </button>
-                    </td>
-                `;
-                tbody.appendChild(tr);
-            });
+                </tr>
+            `).join('') || '<tr><td colspan="9" class="p-4 text-center text-slate-400">Chưa có giao dịch.</td></tr>';
+        }
+
+        function deleteTradeRecord(id) {
+            appState.trades = appState.trades.filter(t => t.id !== id);
+            saveStateToStorage();
+            renderJournalTable();
+            calculateJournalStats();
         }
 
         function calculateJournalStats() {
             const total = appState.trades.length;
             document.getElementById('statTotalTrades').innerText = total;
-
-            if (total === 0) {
-                document.getElementById('statWinrate').innerText = '0%';
-                document.getElementById('statTotalR').innerText = '0R';
-                document.getElementById('statWinLoss').innerText = '0W - 0L - 0BE';
-                return;
-            }
-
             const wins = appState.trades.filter(t => t.result === 'WIN').length;
-            const losses = appState.trades.filter(t => t.result === 'LOSS').length;
-            const bes = appState.trades.filter(t => t.result === 'BE').length;
-
-            const decidedTrades = wins + losses;
-            const winRate = decidedTrades > 0 ? ((wins / decidedTrades) * 100).toFixed(1) : 0;
-            const totalR = appState.trades.reduce((acc, t) => acc + (t.rr || 0), 0).toFixed(1);
-
-            document.getElementById('statWinrate').innerText = `${winRate}%`;
-            document.getElementById('statTotalR').innerText = `${totalR > 0 ? '+' : ''}${totalR}R`;
-            document.getElementById('statWinLoss').innerText = `${wins}W - ${losses}L - ${bes}BE`;
+            const rate = total > 0 ? ((wins / total) * 100).toFixed(1) : 0;
+            document.getElementById('statWinrate').innerText = `${rate}%`;
+            const r = appState.trades.reduce((a, b) => a + (b.rr || 0), 0);
+            document.getElementById('statTotalR').innerText = `${r}R`;
         }
 
-        function exportData() {
-            const payload = {
-                version: "3.5-final",
-                exportedAt: new Date().toISOString(),
-                pairs: appState.pairs,
-                trades: appState.trades,
-                sessions: appState.sessions,
-                alertAudioEnabled: appState.alertAudioEnabled,
-                alertHistory: appState.alertHistory,
-                currentPairId: appState.currentPairId,
-                apiConfig: appState.apiConfig
-            };
-
-            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(payload, null, 2));
-            const dlAnchor = document.createElement('a');
-            const dateStr = new Date().toISOString().slice(0, 10);
-            dlAnchor.setAttribute("href", dataStr);
-            dlAnchor.setAttribute("download", `SMC_Hub_Backup_${dateStr}.json`);
-            dlAnchor.click();
+        function renderFilterPairOptions() {
+            const s = document.getElementById('filterPairSelect');
+            if (!s) return;
+            s.innerHTML = '<option value="ALL">Tất cả cặp</option>' + appState.pairs.map(p => `<option value="${p.name}">${p.name}</option>`).join('');
         }
 
-        function importData(event) {
-            const file = event.target.files[0];
-            if (!file) return;
+        function toggleOnlineGuideModal(show) {
+            document.getElementById('onlineGuideModal').classList.toggle('hidden', !show);
+        }
 
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                try {
-                    const parsed = JSON.parse(e.target.result);
-                    if (parsed && (parsed.pairs || parsed.trades)) {
-                        appState.pairs = parsed.pairs || INITIAL_PAIRS;
-                        appState.trades = parsed.trades || [];
-                        if (parsed.sessions) appState.sessions = parsed.sessions;
-                        if (parsed.alertHistory) appState.alertHistory = parsed.alertHistory;
-                        if (parsed.apiConfig) appState.apiConfig = parsed.apiConfig;
-                        appState.currentPairId = parsed.currentPairId || (appState.pairs[0] ? appState.pairs[0].id : 'BTCUSDT');
-                        saveStateToStorage();
-                        renderPairList();
-                        renderActivePairDetails();
-                        renderSessions();
-                        renderAlertHistory();
-                        renderFilterPairOptions();
-                        renderJournalTable();
-                        calculateJournalStats();
-                        updateApiStatusBadge();
-                        startLivePriceFeed();
-                        alert("Đã nhập dữ liệu thành công vào SMC Trading Hub Pro Final!");
-                    } else {
-                        alert("File không đúng cấu trúc dữ liệu!");
-                    }
-                } catch(err) {
-                    alert("Lỗi đọc file JSON: " + err.message);
-                }
-            };
-            reader.readAsText(file);
-            event.target.value = '';
+        function setTheme(m, save = true) {
+            appState.theme = m;
+            if (save) localStorage.setItem('smc_theme_mode', m);
+            if (m === 'light') document.documentElement.classList.remove('dark');
+            else document.documentElement.classList.add('dark');
         }
 
         function saveStateToStorage() {
-            localStorage.setItem('smc_hub_final_data', JSON.stringify({
-                pairs: appState.pairs,
-                trades: appState.trades,
-                sessions: appState.sessions,
-                currentPairId: appState.currentPairId,
-                alertAudioEnabled: appState.alertAudioEnabled,
-                alertHistory: appState.alertHistory,
-                apiConfig: appState.apiConfig
-            }));
+            localStorage.setItem('smc_hub_final_data', JSON.stringify(appState));
         }
 
-        function setTheme(themeMode, shouldSave = true) {
-            appState.theme = themeMode;
-            if (shouldSave) {
-                localStorage.setItem('smc_theme_mode', themeMode);
-            }
-
-            ['light', 'dark', 'system'].forEach(m => {
-                const btn = document.getElementById(`btn-theme-${m}`);
-                if (btn) {
-                    if (m === themeMode) {
-                        btn.className = "px-2 py-1 rounded-lg text-sky-600 dark:text-sky-400 bg-white dark:bg-slate-900 shadow-sm transition";
-                    } else {
-                        btn.className = "px-2 py-1 rounded-lg text-slate-500 hover:text-slate-900 dark:hover:text-slate-100 transition";
-                    }
-                }
-            });
-
-            if (themeMode === 'light') {
-                document.documentElement.classList.remove('dark');
-            } else if (themeMode === 'dark') {
-                document.documentElement.classList.add('dark');
-            } else {
-                const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-                if (prefersDark) document.documentElement.classList.add('dark');
-                else document.documentElement.classList.remove('dark');
-            }
+        function exportData() {
+            const str = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(appState, null, 2));
+            const dl = document.createElement('a');
+            dl.setAttribute("href", str);
+            dl.setAttribute("download", `SMC_HUB_DATA_${new Date().toISOString().slice(0,10)}.json`);
+            dl.click();
         }
 
-        function switchTab(tab) {
-            appState.activeTab = tab;
-            const views = {
-                pairs: document.getElementById('view-pairs'),
-                sessions: document.getElementById('view-sessions'),
-                journal: document.getElementById('view-journal')
-            };
-
-            const navBtns = {
-                pairs: document.getElementById('nav-tab-pairs'),
-                sessions: document.getElementById('nav-tab-sessions'),
-                journal: document.getElementById('nav-tab-journal')
-            };
-
-            Object.keys(views).forEach(key => {
-                if (key === tab) {
-                    views[key].classList.remove('hidden');
-                    navBtns[key].className = "px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 bg-white dark:bg-slate-900 text-sky-600 dark:text-sky-400 shadow-sm";
-                } else {
-                    views[key].classList.add('hidden');
-                    navBtns[key].className = "px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white";
-                }
-            });
-
-            if (tab === 'sessions') renderSessions();
-            if (tab === 'journal') {
-                renderJournalTable();
-                calculateJournalStats();
-            }
-        }
-
-        function initApp() {
-            const savedTheme = localStorage.getItem('smc_theme_mode') || 'dark';
-            setTheme(savedTheme, false);
-
-            window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
-                if (appState.theme === 'system') setTheme('system', false);
-            });
-
-            const savedState = localStorage.getItem('smc_hub_final_data') || localStorage.getItem('smc_hub_v3_data');
-            if (savedState) {
+        function importData(e) {
+            const f = e.target.files[0];
+            if (!f) return;
+            const r = new FileReader();
+            r.onload = ev => {
                 try {
-                    const parsed = JSON.parse(savedState);
-                    appState.pairs = parsed.pairs || INITIAL_PAIRS;
-                    appState.trades = parsed.trades || [];
-                    appState.sessions = parsed.sessions || INITIAL_SESSIONS;
-                    appState.currentPairId = parsed.currentPairId || 'BTCUSDT';
-                    appState.alertAudioEnabled = parsed.alertAudioEnabled !== undefined ? parsed.alertAudioEnabled : true;
-                    appState.alertHistory = parsed.alertHistory || [];
-                    if (parsed.apiConfig) appState.apiConfig = parsed.apiConfig;
-                } catch(e) {
-                    console.error("Lỗi phục hồi dữ liệu:", e);
-                    appState.pairs = INITIAL_PAIRS;
-                    appState.trades = [];
-                    appState.sessions = INITIAL_SESSIONS;
-                }
-            } else {
-                appState.pairs = INITIAL_PAIRS;
-                appState.trades = [];
-                appState.sessions = INITIAL_SESSIONS;
-                saveStateToStorage();
-            }
-
-            appState.pairs.forEach(p => {
-                if (!p.checklist) p.checklist = { ...DEFAULT_CHECKLIST };
-                if (!p.keyLevels) p.keyLevels = { ...DEFAULT_KEY_LEVELS };
-                if (p.livePrice === undefined) p.livePrice = 0;
-            });
-
-            updateAudioButtonUI();
-            updateApiStatusBadge();
-            renderPairList();
-            renderActivePairDetails();
-            renderSessions();
-            renderAlertHistory();
-            renderFilterPairOptions();
-            renderJournalTable();
-            calculateJournalStats();
-
-            startClockAndSessionMonitor();
-            startLivePriceFeed();
+                    const parsed = JSON.parse(ev.target.result);
+                    if (parsed.pairs) {
+                        appState = parsed;
+                        saveStateToStorage();
+                        initApp();
+                        alert("Nhập dữ liệu thành công!");
+                    }
+                } catch(err){ alert("File không hợp lệ!"); }
+            };
+            r.readAsText(f);
         }
 
         window.addEventListener('DOMContentLoaded', initApp);
