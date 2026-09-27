@@ -1025,7 +1025,7 @@
                 return;
             }
             try {
-                const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${appState.geminiApiKey}`, {
+                const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${appState.geminiApiKey}`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
@@ -1139,7 +1139,7 @@ Thông tin cặp tiền hiện tại trader đang xem:
 
 Hãy đưa ra phản hồi súc tích, mang tính kỷ luật cao, phân tích cấu trúc BSL/SSL, POI (OB/FVG), thanh khoản và quản lý rủi ro (Risk management). Xưng hô thân thiện là 'Muội' và gọi người dùng là 'Huynh'.`;
 
-            const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${appState.geminiApiKey}`, {
+            const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${appState.geminiApiKey}`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
