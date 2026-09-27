@@ -538,7 +538,7 @@
                     </label>
                     <select id="apiProviderSelect" onchange="onProviderChange()" class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl p-2.5 text-xs font-bold text-slate-900 dark:text-white focus:outline-none focus:border-sky-500">
                         <option value="finnhub">Finnhub.io (Khuyên Dùng - Tốc độ cao, chuẩn OANDA)</option>
-                        <option value="twelvedata">Twelve Data (twelvedata.com - Hỗ trợ XAU/USD, EUR/USD)</option>
+                        <option value="twelvedata" selected>Twelve Data (twelvedata.com - Hỗ trợ XAU/USD, EUR/USD)</option>
                         <option value="public_relay">Public Fallback (Không cần Key - Dùng khi chỉ test)</option>
                     </select>
                 </div>
@@ -554,7 +554,7 @@
                             <i class="fa-solid fa-arrow-up-right-from-square text-[9px]"></i>
                         </a>
                     </div>
-                    <input type="text" id="apiTokenInput" class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl p-2.5 text-xs font-mono text-slate-900 dark:text-white focus:outline-none focus:border-sky-500" placeholder="vd: cr1234xxxxxx hoặc dán API Token vào đây">
+                    <input type="text" id="apiTokenInput" value="3bec71367a4b4a9dbe36eb23d4698af2" class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl p-2.5 text-xs font-mono text-slate-900 dark:text-white focus:outline-none focus:border-sky-500" placeholder="vd: cr1234xxxxxx hoặc dán API Token vào đây">
                 </div>
 
                 <!-- Tần suất cập nhật -->
