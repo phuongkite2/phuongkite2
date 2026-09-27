@@ -1139,16 +1139,37 @@ Thông tin cặp tiền hiện tại trader đang xem:
 
 Hãy đưa ra phản hồi súc tích, mang tính kỷ luật cao, phân tích cấu trúc BSL/SSL, POI (OB/FVG), thanh khoản và quản lý rủi ro (Risk management). Xưng hô thân thiện là 'Muội' và gọi người dùng là 'Huynh'.`;
 
-            const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent?key=${appState.geminiApiKey}`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    systemInstruction: { parts: [{ text: systemContext }] },
-                    contents: [{ parts: [{ text: userPrompt }] }]
-                })
-            });
+            const candidateModels = ['gemini-3.8-flash', 'gemini-3.8-flash-lite', 'gemini-3.1-pro'];
+    let data = null;
+    let lastError = null;
 
-            const data = await res.json();
+    for (const model of candidateModels) {
+      try {
+        const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${appState.geminiApiKey}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            systemInstruction: { parts: [{ text: systemContext }] },
+            contents: [{ parts: [{ text: userPrompt }] }]
+          })
+        });
+        const resJson = await res.json();
+        if (res.ok && resJson.candidates && resJson.candidates[0]) {
+          data = resJson;
+          break; // Thành công thì dừng thử tiếp
+        } else {
+          lastError = resJson.error?.message || "Model bận";
+        }
+      } catch (e) {
+        lastError = e.message;
+      }
+    }
+
+    if (data && data.candidates && data.candidates[0]) {
+      return data.candidates[0].content.parts[0].text;
+    } else {
+      throw new Error(lastError || "Không nhận được phản hồi từ AI");
+    }
             if (data.candidates && data.candidates[0]) {
                 return data.candidates[0].content.parts[0].text;
             } else {
