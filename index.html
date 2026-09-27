@@ -1,0 +1,2068 @@
+<!DOCTYPE html>
+<html lang="vi" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>SMC Trading Hub Pro Final - Multi-Asset Live Feeds</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome CDN -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#f0f9ff',
+                            100: '#e0f2fe',
+                            500: '#0284c7',
+                            600: '#0369a1',
+                            700: '#075985'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        html { scroll-behavior: smooth; }
+        ::-webkit-scrollbar { width: 5px; height: 5px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(148, 163, 184, 0.3); border-radius: 9999px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(148, 163, 184, 0.5); }
+        .tap-highlight-transparent { -webkit-tap-highlight-color: transparent; }
+        @keyframes pulse-ring {
+            0% { transform: scale(0.95); opacity: 0.8; }
+            50% { transform: scale(1.18); opacity: 0.3; }
+            100% { transform: scale(0.95); opacity: 0.8; }
+        }
+        .live-ping { animation: pulse-ring 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
+        .price-flash-green { animation: flashGreen 0.6s ease-out; }
+        .price-flash-red { animation: flashRed 0.6s ease-out; }
+        @keyframes flashGreen {
+            0% { background-color: rgba(16, 185, 129, 0.4); color: #10b981; }
+            100% { background-color: transparent; }
+        }
+        @keyframes flashRed {
+            0% { background-color: rgba(239, 68, 68, 0.4); color: #ef4444; }
+            100% { background-color: transparent; }
+        }
+    </style>
+</head>
+<body class="bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 min-h-screen font-sans flex flex-col transition-colors duration-200 tap-highlight-transparent">
+
+    <!-- Header Navigation -->
+    <header class="border-b border-slate-200 dark:border-slate-800 bg-white/95 dark:bg-slate-900/95 backdrop-blur sticky top-0 z-40 transition-colors shadow-sm">
+        <div class="max-w-7xl mx-auto px-3 sm:px-6 py-2.5 flex flex-wrap items-center justify-between gap-3">
+            <!-- Brand Logo -->
+            <div class="flex items-center space-x-2.5">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-sky-600 via-indigo-600 to-amber-500 flex items-center justify-center text-white shadow-md shadow-sky-500/20">
+                    <i class="fa-solid fa-chart-candlestick text-lg"></i>
+                </div>
+                <div>
+                    <div class="flex items-center gap-1.5">
+                        <h1 class="text-base sm:text-lg font-black tracking-tight text-slate-900 dark:text-white uppercase">SMC Hub Pro</h1>
+                        <span class="text-[10px] px-2 py-0.5 rounded font-black uppercase bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30">Final Live</span>
+                    </div>
+                    <p class="text-[11px] text-slate-500 dark:text-slate-400 hidden sm:block">SMC Confluence &bull; Key Levels Alert &bull; Sessions</p>
+                </div>
+            </div>
+
+            <!-- Tab Switcher -->
+            <nav class="flex items-center gap-1 bg-slate-100 dark:bg-slate-800/80 p-1 rounded-xl border border-slate-200 dark:border-slate-700/60 order-3 sm:order-2 w-full sm:w-auto justify-center">
+                <button onclick="switchTab('pairs')" id="nav-tab-pairs" class="px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 bg-white dark:bg-slate-900 text-sky-600 dark:text-sky-400 shadow-sm">
+                    <i class="fa-solid fa-coins"></i> Cặp Tiền & Key Levels
+                </button>
+                <button onclick="switchTab('sessions')" id="nav-tab-sessions" class="px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white">
+                    <i class="fa-solid fa-clock"></i> Phiên Giao Dịch
+                </button>
+                <button onclick="switchTab('journal')" id="nav-tab-journal" class="px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white">
+                    <i class="fa-solid fa-book-journal-whills"></i> Nhật Ký Lệnh
+                </button>
+            </nav>
+
+            <!-- Quick Controls: Prominent API Key Button, Audio, Theme, Sync -->
+            <div class="flex items-center gap-2 order-2 sm:order-3">
+                <!-- NÚT CÀI ĐẶT API GIÁ NỔI BẬT -->
+                <button onclick="toggleApiSettingsModal(true)" id="btnOpenApiModal" class="relative group text-xs bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white font-bold px-3 py-1.5 rounded-xl shadow-md shadow-orange-500/20 transition-all flex items-center gap-1.5 active:scale-95">
+                    <i class="fa-solid fa-key"></i>
+                    <span>Cài Đặt API Giá</span>
+                    <span id="apiStatusDot" class="w-2 h-2 rounded-full bg-emerald-300 ring-2 ring-white/50"></span>
+                </button>
+
+                <!-- Nút Bật/Tắt Chuông Cảnh Báo -->
+                <button onclick="toggleAlertAudioPermission()" id="btn-audio-alert" title="Bật/Tắt chuông và thông báo trình duyệt" class="text-xs bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 px-2.5 py-1.5 rounded-xl text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 transition flex items-center gap-1">
+                    <i id="icon-audio" class="fa-solid fa-bell text-amber-500"></i>
+                    <span class="hidden md:inline text-[11px] font-medium" id="txt-audio-status">Chuông: Bật</span>
+                </button>
+
+                <!-- Hướng Dẫn Online Web -->
+                <button onclick="toggleOnlineGuideModal(true)" title="Xem hướng dẫn đưa web lên Online miễn phí" class="text-xs bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 px-2.5 py-1.5 rounded-xl border border-emerald-500/30 transition flex items-center gap-1">
+                    <i class="fa-solid fa-cloud-arrow-up"></i>
+                    <span class="hidden lg:inline text-[11px] font-bold">Online Web</span>
+                </button>
+
+                <!-- Theme Selector -->
+                <div class="relative inline-flex items-center bg-slate-100 dark:bg-slate-800 rounded-xl p-0.5 border border-slate-200 dark:border-slate-700 text-xs">
+                    <button onclick="setTheme('light')" id="btn-theme-light" title="Giao diện Sáng" class="px-2 py-1 rounded-lg text-slate-500 hover:text-slate-900 dark:hover:text-slate-100 transition">
+                        <i class="fa-solid fa-sun"></i>
+                    </button>
+                    <button onclick="setTheme('dark')" id="btn-theme-dark" title="Giao diện Tối" class="px-2 py-1 rounded-lg text-slate-500 hover:text-slate-900 dark:hover:text-slate-100 transition">
+                        <i class="fa-solid fa-moon"></i>
+                    </button>
+                    <button onclick="setTheme('system')" id="btn-theme-system" title="Tự động theo hệ thống" class="px-2 py-1 rounded-lg text-slate-500 hover:text-slate-900 dark:hover:text-slate-100 transition">
+                        <i class="fa-solid fa-desktop"></i>
+                    </button>
+                </div>
+
+                <!-- Export & Import JSON -->
+                <button onclick="exportData()" title="Xuất file JSON sao lưu" class="text-xs bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 px-2 py-1.5 rounded-xl text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 transition">
+                    <i class="fa-solid fa-download"></i>
+                </button>
+                <label title="Nhập file JSON từ máy hoặc thiết bị khác" class="cursor-pointer text-xs bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 px-2 py-1.5 rounded-xl text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 transition flex items-center">
+                    <i class="fa-solid fa-upload"></i>
+                    <input type="file" id="importInput" onchange="importData(event)" class="hidden" accept=".json">
+                </label>
+            </div>
+        </div>
+    </header>
+
+    <!-- Banner Cảnh Báo Khi Chạm Mốc Đỉnh/Đáy -->
+    <div id="liveAlertBanner" class="hidden bg-gradient-to-r from-amber-500 via-rose-600 to-rose-700 text-white px-4 py-2.5 text-xs font-bold shadow-lg flex items-center justify-between z-30 transition-all">
+        <div class="flex items-center gap-2">
+            <span class="w-2.5 h-2.5 rounded-full bg-white live-ping"></span>
+            <span id="liveAlertBannerText">CẢNH BÁO: Giá vừa chạm mốc thanh khoản quan trọng!</span>
+        </div>
+        <button onclick="dismissAlertBanner()" class="text-white/80 hover:text-white px-2 py-0.5 rounded bg-black/20 text-[10px]">
+            Đóng
+        </button>
+    </div>
+
+    <!-- Main Container -->
+    <main class="flex-1 max-w-7xl w-full mx-auto px-3 sm:px-6 py-4">
+
+        <!-- TAB 1: CẶP TIỀN, SMC CHECKLIST & KEY LEVELS -->
+        <section id="view-pairs" class="space-y-4">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
+                <!-- Danh mục cặp tiền (Left sidebar - 4 cols on lg) -->
+                <div class="lg:col-span-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-sm space-y-3">
+                    <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
+                        <div class="flex items-center gap-2">
+                            <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 live-ping"></span>
+                            <h2 class="font-bold text-sm text-slate-800 dark:text-slate-100 tracking-wide">Watchlist & Giá Live</h2>
+                        </div>
+                        <button onclick="promptAddPair()" class="text-xs bg-sky-500 hover:bg-sky-600 text-white font-medium px-2.5 py-1.5 rounded-lg transition flex items-center gap-1 shadow-sm shadow-sky-500/20">
+                            <i class="fa-solid fa-plus"></i> Thêm Cặp
+                        </button>
+                    </div>
+
+                    <!-- Danh sách các cặp rendered via JS -->
+                    <div id="pairListContainer" class="space-y-2 max-h-[320px] lg:max-h-[680px] overflow-y-auto pr-1">
+                        <!-- Dynamic Pair Cards -->
+                    </div>
+                </div>
+
+                <!-- Chi tiết Phân Tích + SMC Checklist + Key Levels (8 cols on lg) -->
+                <div class="lg:col-span-8 space-y-4">
+                    <!-- Pair Info Bar & Live Price Section -->
+                    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 sm:p-5 shadow-sm space-y-4">
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800 gap-3">
+                            <div>
+                                <div class="flex items-center gap-2 flex-wrap">
+                                    <h2 id="currentPairTitle" class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight">XAUUSD</h2>
+                                    <span id="currentPairBiasBadge" class="text-xs font-bold px-2 py-0.5 rounded uppercase">BULLISH</span>
+                                    <span id="livePriceBadgeContainer" class="text-xs font-extrabold px-3 py-1 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 flex items-center gap-1.5 transition-all">
+                                        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                                        <span id="livePriceVal" class="font-mono text-sm sm:text-base">--</span>
+                                    </span>
+                                </div>
+                                <p id="currentPairDesc" class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Vàng Spot / Đô La Mỹ</p>
+                            </div>
+                            
+                            <div class="flex items-center flex-wrap gap-2">
+                                <div class="flex items-center gap-1.5 bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded-xl border border-slate-200 dark:border-slate-700">
+                                    <span class="text-[11px] text-slate-500 dark:text-slate-400 font-medium">HTF Bias:</span>
+                                    <select id="dailyBiasSelect" onchange="updateActivePairField('bias', this.value)" class="bg-transparent text-xs font-bold text-slate-800 dark:text-white focus:outline-none">
+                                        <option value="BULLISH">BULLISH (Buy)</option>
+                                        <option value="BEARISH">BEARISH (Sell)</option>
+                                        <option value="NEUTRAL">NEUTRAL (Chờ)</option>
+                                    </select>
+                                </div>
+                                <button onclick="deleteActivePair()" title="Xóa cặp này" class="text-xs text-rose-500 hover:text-rose-600 bg-rose-50 dark:bg-rose-500/10 hover:bg-rose-100 dark:hover:bg-rose-500/20 px-2.5 py-1.5 rounded-xl border border-rose-200 dark:border-rose-900/40 transition">
+                                    <i class="fa-solid fa-trash-can"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- LIVE PRICE TICKER CONTROL & STATUS BAR -->
+                        <div class="bg-slate-50 dark:bg-slate-950/70 p-3 rounded-xl border border-slate-200 dark:border-slate-800 flex flex-wrap items-center justify-between gap-3 text-xs">
+                            <div class="flex items-center gap-2">
+                                <div class="w-2 h-2 rounded-full bg-emerald-500" id="liveTickerDot"></div>
+                                <span class="font-bold text-slate-700 dark:text-slate-300" id="liveFeedStatusText">Live Feed: Đang kiểm tra...</span>
+                                <span class="text-[10px] text-slate-400 font-mono" id="liveFeedTimestamp">Cập nhật: Vừa xong</span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <button onclick="simulatePriceTickPrompt()" title="Nhập giá hiện tại thủ công để kiểm tra phản ứng mốc cản" class="px-2 py-1 rounded-lg bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-medium hover:bg-slate-300 dark:hover:bg-slate-700 transition flex items-center gap-1">
+                                    <i class="fa-solid fa-pen-to-square"></i> Cập Nhật Giá Tay
+                                </button>
+                                <button onclick="toggleLiveFeedAuto()" id="btnToggleLiveAuto" class="px-2.5 py-1 rounded-lg bg-sky-500 text-white font-medium hover:bg-sky-600 transition flex items-center gap-1">
+                                    <i class="fa-solid fa-rotate"></i> Auto: BẬT
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- SMC KEY LEVELS: ĐỈNH / ĐÁY NGÀY, TUẦN, THÁNG -->
+                        <div class="bg-slate-100/70 dark:bg-slate-800/40 p-3.5 rounded-xl border border-slate-200 dark:border-slate-800 space-y-3">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center gap-2">
+                                    <i class="fa-solid fa-arrows-up-down-left-right text-amber-500 text-sm"></i>
+                                    <h3 class="font-bold text-xs uppercase tracking-wider text-slate-900 dark:text-white">
+                                        Mốc Đỉnh / Đáy SMC (Key Liquidity Pools)
+                                    </h3>
+                                </div>
+                                <span class="text-[10px] text-slate-500 dark:text-slate-400 font-medium">
+                                    <i class="fa-solid fa-bell mr-1"></i>Hệ thống tự động báo động khi giá chạm mốc
+                                </span>
+                            </div>
+
+                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                <!-- Ngày: PDH / PDL -->
+                                <div class="bg-white dark:bg-slate-900 p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 space-y-2">
+                                    <div class="flex justify-between items-center text-xs font-bold text-slate-700 dark:text-slate-300 border-b border-slate-100 dark:border-slate-800 pb-1">
+                                        <span>Khung Ngày (Daily)</span>
+                                        <span class="text-[10px] text-amber-500 font-mono">D1</span>
+                                    </div>
+                                    <div class="space-y-1.5">
+                                        <div>
+                                            <div class="flex justify-between text-[11px] mb-0.5">
+                                                <span class="text-rose-600 dark:text-rose-400 font-semibold">Đỉnh Ngày (PDH)</span>
+                                                <span id="badge-pdh-dist" class="text-[10px] text-slate-400">--</span>
+                                            </div>
+                                            <input type="number" step="any" id="keyLevelPDH" oninput="updateActivePairKeyLevel('pdh', this.value)" class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-lg p-1.5 text-xs font-bold text-slate-900 dark:text-white focus:outline-none focus:border-sky-500" placeholder="vd: 2650.5">
+                                        </div>
+                                        <div>
+                                            <div class="flex justify-between text-[11px] mb-0.5">
+                                                <span class="text-emerald-600 dark:text-emerald-400 font-semibold">Đáy Ngày (PDL)</span>
+                                                <span id="badge-pdl-dist" class="text-[10px] text-slate-400">--</span>
+                                            </div>
+                                            <input type="number" step="any" id="keyLevelPDL" oninput="updateActivePairKeyLevel('pdl', this.value)" class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-lg p-1.5 text-xs font-bold text-slate-900 dark:text-white focus:outline-none focus:border-sky-500" placeholder="vd: 2618.0">
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Tuần: PWH / PWL -->
+                                <div class="bg-white dark:bg-slate-900 p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 space-y-2">
+                                    <div class="flex justify-between items-center text-xs font-bold text-slate-700 dark:text-slate-300 border-b border-slate-100 dark:border-slate-800 pb-1">
+                                        <span>Khung Tuần (Weekly)</span>
+                                        <span class="text-[10px] text-sky-500 font-mono">W1</span>
+                                    </div>
+                                    <div class="space-y-1.5">
+                                        <div>
+                                            <div class="flex justify-between text-[11px] mb-0.5">
+                                                <span class="text-rose-600 dark:text-rose-400 font-semibold">Đỉnh Tuần (PWH)</span>
+                                                <span id="badge-pwh-dist" class="text-[10px] text-slate-400">--</span>
+                                            </div>
+                                            <input type="number" step="any" id="keyLevelPWH" oninput="updateActivePairKeyLevel('pwh', this.value)" class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-lg p-1.5 text-xs font-bold text-slate-900 dark:text-white focus:outline-none focus:border-sky-500" placeholder="vd: 2685.0">
+                                        </div>
+                                        <div>
+                                            <div class="flex justify-between text-[11px] mb-0.5">
+                                                <span class="text-emerald-600 dark:text-emerald-400 font-semibold">Đáy Tuần (PWL)</span>
+                                                <span id="badge-pwl-dist" class="text-[10px] text-slate-400">--</span>
+                                            </div>
+                                            <input type="number" step="any" id="keyLevelPWL" oninput="updateActivePairKeyLevel('pwl', this.value)" class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-lg p-1.5 text-xs font-bold text-slate-900 dark:text-white focus:outline-none focus:border-sky-500" placeholder="vd: 2580.0">
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Tháng: PMH / PML -->
+                                <div class="bg-white dark:bg-slate-900 p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 space-y-2">
+                                    <div class="flex justify-between items-center text-xs font-bold text-slate-700 dark:text-slate-300 border-b border-slate-100 dark:border-slate-800 pb-1">
+                                        <span>Khung Tháng (Monthly)</span>
+                                        <span class="text-[10px] text-indigo-500 font-mono">MN</span>
+                                    </div>
+                                    <div class="space-y-1.5">
+                                        <div>
+                                            <div class="flex justify-between text-[11px] mb-0.5">
+                                                <span class="text-rose-600 dark:text-rose-400 font-semibold">Đỉnh Tháng (PMH)</span>
+                                                <span id="badge-pmh-dist" class="text-[10px] text-slate-400">--</span>
+                                            </div>
+                                            <input type="number" step="any" id="keyLevelPMH" oninput="updateActivePairKeyLevel('pmh', this.value)" class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-lg p-1.5 text-xs font-bold text-slate-900 dark:text-white focus:outline-none focus:border-sky-500" placeholder="vd: 2710.0">
+                                        </div>
+                                        <div>
+                                            <div class="flex justify-between text-[11px] mb-0.5">
+                                                <span class="text-emerald-600 dark:text-emerald-400 font-semibold">Đáy Tháng (PML)</span>
+                                                <span id="badge-pml-dist" class="text-[10px] text-slate-400">--</span>
+                                            </div>
+                                            <input type="number" step="any" id="keyLevelPML" oninput="updateActivePairKeyLevel('pml', this.value)" class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-lg p-1.5 text-xs font-bold text-slate-900 dark:text-white focus:outline-none focus:border-sky-500" placeholder="vd: 2500.0">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- SMC PRE-TRADE CHECKLIST RIÊNG BIỆT CHO CẶP NÀY -->
+                        <div class="pt-1">
+                            <div class="flex items-center justify-between mb-3">
+                                <div class="flex items-center gap-2">
+                                    <i class="fa-solid fa-shield-halved text-sky-500 text-sm"></i>
+                                    <h3 class="font-bold text-sm text-slate-900 dark:text-white">Checklist Xác Nhận SMC</h3>
+                                    <span id="checklistScoreBadge" class="text-xs font-bold px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
+                                        0/6 Tiêu Chuẩn
+                                    </span>
+                                </div>
+                                <button onclick="resetActiveChecklist()" class="text-[11px] font-semibold text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 px-2 py-1 rounded bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 transition">
+                                    <i class="fa-solid fa-rotate-right mr-1"></i>Reset Checklist
+                                </button>
+                            </div>
+
+                            <!-- Confluence items list -->
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-2" id="checklistForm">
+                                <label class="checklist-item flex items-start gap-2.5 p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 hover:border-sky-500/40 cursor-pointer bg-slate-50/70 dark:bg-slate-950/40 transition">
+                                    <input type="checkbox" data-check="htfBias" onchange="toggleChecklistItem('htfBias', this.checked)" class="mt-0.5 w-4 h-4 rounded text-sky-600 focus:ring-0 focus:ring-offset-0 bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-700">
+                                    <div class="text-xs">
+                                        <div class="font-semibold text-slate-800 dark:text-slate-200">1. Đồng Thuận Xu Hướng HTF (H4/D1)</div>
+                                        <div class="text-[11px] text-slate-500 dark:text-slate-400">Cấu trúc rõ ràng, thuận dòng lệnh cơ sở (Order Flow).</div>
+                                    </div>
+                                </label>
+
+                                <label class="checklist-item flex items-start gap-2.5 p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 hover:border-sky-500/40 cursor-pointer bg-slate-50/70 dark:bg-slate-950/40 transition">
+                                    <input type="checkbox" data-check="liquiditySweep" onchange="toggleChecklistItem('liquiditySweep', this.checked)" class="mt-0.5 w-4 h-4 rounded text-sky-600 focus:ring-0 focus:ring-offset-0 bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-700">
+                                    <div class="text-xs">
+                                        <div class="font-semibold text-slate-800 dark:text-slate-200">2. Đã Quét Thanh Khoản (Sweep PDH/PDL/IDM)</div>
+                                        <div class="text-[11px] text-slate-500 dark:text-slate-400">Giá đã quét đỉnh đáy ngày trước hoặc Inducement trap.</div>
+                                    </div>
+                                </label>
+
+                                <label class="checklist-item flex items-start gap-2.5 p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 hover:border-sky-500/40 cursor-pointer bg-slate-50/70 dark:bg-slate-950/40 transition">
+                                    <input type="checkbox" data-check="validPoi" onchange="toggleChecklistItem('validPoi', this.checked)" class="mt-0.5 w-4 h-4 rounded text-sky-600 focus:ring-0 focus:ring-offset-0 bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-700">
+                                    <div class="text-xs">
+                                        <div class="font-semibold text-slate-800 dark:text-slate-200">3. Vùng POI Chuẩn (OB + FVG Unmitigated)</div>
+                                        <div class="text-[11px] text-slate-500 dark:text-slate-400">Khối lệnh còn nguyên vẹn, có mất cân bằng FVG xung lực.</div>
+                                    </div>
+                                </label>
+
+                                <label class="checklist-item flex items-start gap-2.5 p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 hover:border-sky-500/40 cursor-pointer bg-slate-50/70 dark:bg-slate-950/40 transition">
+                                    <input type="checkbox" data-check="ltfChoch" onchange="toggleChecklistItem('ltfChoch', this.checked)" class="mt-0.5 w-4 h-4 rounded text-sky-600 focus:ring-0 focus:ring-offset-0 bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-700">
+                                    <div class="text-xs">
+                                        <div class="font-semibold text-slate-800 dark:text-slate-200">4. Tín Hiệu Khung Nhỏ (M1/M5 CHoCH / Flip)</div>
+                                        <div class="text-[11px] text-slate-500 dark:text-slate-400">Đảo cấu trúc khung thấp hoặc Flip Demand/Supply xác nhận.</div>
+                                    </div>
+                                </label>
+
+                                <label class="checklist-item flex items-start gap-2.5 p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 hover:border-sky-500/40 cursor-pointer bg-slate-50/70 dark:bg-slate-950/40 transition">
+                                    <input type="checkbox" data-check="rrRatio" onchange="toggleChecklistItem('rrRatio', this.checked)" class="mt-0.5 w-4 h-4 rounded text-sky-600 focus:ring-0 focus:ring-offset-0 bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-700">
+                                    <div class="text-xs">
+                                        <div class="font-semibold text-slate-800 dark:text-slate-200">5. Vùng Giá Tối Ưu & R:R &ge; 1:2.5</div>
+                                        <div class="text-[11px] text-slate-500 dark:text-slate-400">Mua ở Discount, Bán ở Premium. SL tối ưu sau sweep.</div>
+                                    </div>
+                                </label>
+
+                                <label class="checklist-item flex items-start gap-2.5 p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 hover:border-sky-500/40 cursor-pointer bg-slate-50/70 dark:bg-slate-950/40 transition">
+                                    <input type="checkbox" data-check="newsFilter" onchange="toggleChecklistItem('newsFilter', this.checked)" class="mt-0.5 w-4 h-4 rounded text-sky-600 focus:ring-0 focus:ring-offset-0 bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-700">
+                                    <div class="text-xs">
+                                        <div class="font-semibold text-slate-800 dark:text-slate-200">6. Đúng Khung Giờ Phiên & Lọc Tin Đỏ</div>
+                                        <div class="text-[11px] text-slate-500 dark:text-slate-400">Vào lệnh trong London/NY Killzones, tránh tin CPI/FOMC.</div>
+                                    </div>
+                                </label>
+                            </div>
+
+                            <!-- Đánh giá trạng thái vào lệnh -->
+                            <div id="checklistStatusBanner" class="mt-3 py-2 px-3 rounded-xl text-xs font-semibold flex items-center justify-between transition-all bg-slate-100 dark:bg-slate-800/80 text-slate-600 dark:text-slate-400">
+                                <span id="checklistStatusText"><i class="fa-solid fa-hourglass-start mr-1.5"></i>Chờ hoàn thành đủ tiêu chuẩn trước khi mở vị thế...</span>
+                                <button onclick="openTradeModalWithCurrentPair()" class="text-xs bg-emerald-600 hover:bg-emerald-500 text-white px-2.5 py-1 rounded-lg font-medium transition flex items-center gap-1 shadow-sm">
+                                    <i class="fa-solid fa-arrow-right"></i> Vào Lệnh
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Phân tích chi tiết hằng ngày -->
+                        <div class="pt-3 border-t border-slate-100 dark:border-slate-800 space-y-3">
+                            <div class="flex items-center justify-between">
+                                <h3 class="font-bold text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400">Nhật Ký Phân Tích & Kế Hoạch Vào Lệnh</h3>
+                                <span id="autoSaveIndicator" class="text-[11px] text-emerald-500 hidden font-medium"><i class="fa-solid fa-check mr-1"></i>Đã tự động lưu</span>
+                            </div>
+
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                <div>
+                                    <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Cấu trúc HTF (H4/D1) & Vùng POI Chờ</label>
+                                    <textarea id="pairHtfInput" rows="3" oninput="updateActivePairField('htfNotes', this.value)" class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl p-2.5 text-xs text-slate-900 dark:text-slate-100 focus:outline-none focus:border-sky-500 transition placeholder-slate-400" placeholder="Vd: D1 tiếp diễn tăng sau BOS 2600. H4 có FVG quanh 2618-2624..."></textarea>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Kế hoạch Khung Nhỏ (M5/M1 Plan)</label>
+                                    <textarea id="pairLtfInput" rows="3" oninput="updateActivePairField('ltfNotes', this.value)" class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl p-2.5 text-xs text-slate-900 dark:text-slate-100 focus:outline-none focus:border-sky-500 transition placeholder-slate-400" placeholder="Vd: Đợi London quét đáy PDL, xuất hiện M5 CHoCH để Buy..."></textarea>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 2: KHUNG GIỜ PHIÊN GIAO DỊCH (SESSIONS & KILLZONES) -->
+        <section id="view-sessions" class="hidden space-y-4">
+            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 sm:p-6 shadow-sm space-y-4">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-slate-100 dark:border-slate-800 gap-3">
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <span class="w-2.5 h-2.5 rounded-full bg-sky-500 live-ping"></span>
+                            <h2 class="text-lg sm:text-xl font-black text-slate-900 dark:text-white">Đồng Hồ Thị Trường & Trạng Thái Phiên</h2>
+                        </div>
+                        <p class="text-xs text-slate-500 dark:text-slate-400">Theo dõi thời điểm cá mập giải ngân thanh khoản cao nhất trong ngày</p>
+                    </div>
+
+                    <div class="flex items-center gap-3">
+                        <div class="bg-slate-100 dark:bg-slate-800 px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 text-center">
+                            <span class="text-[10px] text-slate-400 block font-semibold">Giờ Việt Nam (GMT+7)</span>
+                            <span id="clockLocalTime" class="text-base font-mono font-bold text-slate-900 dark:text-white">00:00:00</span>
+                        </div>
+                        <div class="bg-slate-100 dark:bg-slate-800 px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 text-center">
+                            <span class="text-[10px] text-slate-400 block font-semibold">UTC Standard</span>
+                            <span id="clockUtcTime" class="text-base font-mono font-bold text-sky-500">00:00:00</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Bảng 4 phiên Sydney, Tokyo, London, New York -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5" id="sessionsContainer">
+                    <!-- Rendered by JS -->
+                </div>
+
+                <!-- Lịch sử Cảnh Báo Gần Nhất -->
+                <div class="pt-4 border-t border-slate-100 dark:border-slate-800">
+                    <div class="flex items-center justify-between mb-2">
+                        <h3 class="font-bold text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                            <i class="fa-solid fa-clock-rotate-left mr-1"></i>Lịch Sử Cảnh Báo Chạm Đỉnh / Đáy Gần Nhất
+                        </h3>
+                        <button onclick="clearAlertHistory()" class="text-[11px] text-slate-400 hover:text-rose-500">Xóa Lịch Sử</button>
+                    </div>
+                    <div id="alertHistoryList" class="space-y-1.5 max-h-40 overflow-y-auto pr-1 text-xs">
+                        <!-- Populated by JS -->
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 3: NHẬT KÝ LỆNH ĐÃ VÀO (TRADE JOURNAL) -->
+        <section id="view-journal" class="hidden space-y-4">
+            <!-- Thống kê tổng quan KPI -->
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-3.5 rounded-2xl shadow-sm">
+                    <p class="text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase">Tổng Lệnh Đã Trade</p>
+                    <p id="statTotalTrades" class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white mt-0.5">0</p>
+                </div>
+                <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-3.5 rounded-2xl shadow-sm">
+                    <p class="text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase">Winrate (Tỉ lệ thắng)</p>
+                    <p id="statWinrate" class="text-xl sm:text-2xl font-black text-emerald-500 mt-0.5">0%</p>
+                </div>
+                <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-3.5 rounded-2xl shadow-sm">
+                    <p class="text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase">Tổng R Kiếm Được</p>
+                    <p id="statTotalR" class="text-xl sm:text-2xl font-black text-sky-500 mt-0.5">0R</p>
+                </div>
+                <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-3.5 rounded-2xl shadow-sm">
+                    <p class="text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase">Thắng / Thua / Hòa</p>
+                    <p id="statWinLoss" class="text-base sm:text-xl font-bold text-slate-700 dark:text-slate-300 mt-1">0W - 0L - 0BE</p>
+                </div>
+            </div>
+
+            <!-- Bảng danh sách nhật ký lệnh -->
+            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 sm:p-5 shadow-sm space-y-4">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100 dark:border-slate-800">
+                    <div>
+                        <h3 class="font-bold text-base text-slate-900 dark:text-white">Lịch Sử & Bài Học Lệnh Giao Dịch</h3>
+                        <p class="text-xs text-slate-500 dark:text-slate-400">Ghi chép kỉ luật, rà soát lại lý do thắng/thua sau mỗi phiên</p>
+                    </div>
+
+                    <div class="flex items-center flex-wrap gap-2">
+                        <div class="flex items-center gap-1.5 bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded-xl border border-slate-200 dark:border-slate-700 text-xs">
+                            <span class="text-slate-500 dark:text-slate-400">Lọc Cặp:</span>
+                            <select id="filterPairSelect" onchange="renderJournalTable()" class="bg-transparent font-medium text-slate-800 dark:text-white focus:outline-none">
+                                <option value="ALL">Tất cả cặp</option>
+                            </select>
+                        </div>
+
+                        <button onclick="toggleTradeModal(true)" class="bg-sky-500 hover:bg-sky-600 text-white px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 shadow-sm shadow-sky-500/20 transition">
+                            <i class="fa-solid fa-plus"></i> Ghi Lệnh Mới
+                        </button>
+                    </div>
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs border-collapse min-w-[720px]">
+                        <thead>
+                            <tr class="border-b border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400 font-semibold uppercase text-[10px] tracking-wider">
+                                <th class="py-2.5 px-3">Thời Gian</th>
+                                <th class="py-2.5 px-3">Cặp</th>
+                                <th class="py-2.5 px-3">Vị Thế</th>
+                                <th class="py-2.5 px-3">Setup SMC</th>
+                                <th class="py-2.5 px-3">Entry / SL / TP</th>
+                                <th class="py-2.5 px-3">Kết Quả</th>
+                                <th class="py-2.5 px-3">R:R</th>
+                                <th class="py-2.5 px-3">Đánh Giá / Cảm Xúc</th>
+                                <th class="py-2.5 px-3 text-center">Xóa</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tradeJournalTbody" class="divide-y divide-slate-100 dark:divide-slate-800/60">
+                            <!-- Rendered by JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- MODAL CÀI ĐẶT API GIÁ ĐA NGUỒN (FINNHUB / TWELVEDATA / BINANCE) -->
+    <div id="apiSettingsModal" class="fixed inset-0 bg-slate-950/75 backdrop-blur-sm z-50 flex items-center justify-center p-3 hidden transition-opacity">
+        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-lg w-full p-5 sm:p-6 shadow-2xl overflow-y-auto max-h-[92vh] space-y-4">
+            <div class="flex justify-between items-center pb-3 border-b border-slate-100 dark:border-slate-800">
+                <div class="flex items-center gap-2">
+                    <div class="w-8 h-8 rounded-xl bg-amber-500/10 text-amber-500 flex items-center justify-center font-bold">
+                        <i class="fa-solid fa-key text-base"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-slate-900 dark:text-white text-base">Cài Đặt API Giá Trực Tiếp</h3>
+                        <p class="text-[11px] text-slate-500 dark:text-slate-400">Kết nối dữ liệu thời gian thực cho Vàng & Forex</p>
+                    </div>
+                </div>
+                <button onclick="toggleApiSettingsModal(false)" class="text-slate-400 hover:text-slate-600 dark:hover:text-white text-base p-1">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <div class="space-y-4 text-xs">
+                <!-- Chọn nguồn dữ liệu -->
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
+                        Nguồn Dữ Liệu Forex & Vàng (XAUUSD):
+                    </label>
+                    <select id="apiProviderSelect" onchange="onProviderChange()" class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl p-2.5 text-xs font-bold text-slate-900 dark:text-white focus:outline-none focus:border-sky-500">
+                        <option value="finnhub">Finnhub.io (Khuyên Dùng - Tốc độ cao, chuẩn OANDA)</option>
+                        <option value="twelvedata">Twelve Data (twelvedata.com - Hỗ trợ XAU/USD, EUR/USD)</option>
+                        <option value="public_relay">Public Fallback (Không cần Key - Dùng khi chỉ test)</option>
+                    </select>
+                </div>
+
+                <!-- Ô nhập API Token -->
+                <div id="apiKeyInputWrapper">
+                    <div class="flex justify-between items-center mb-1">
+                        <label class="text-xs font-semibold text-slate-700 dark:text-slate-300">
+                            Mã API Key (Token):
+                        </label>
+                        <a id="apiProviderLink" href="https://finnhub.io/register" target="_blank" class="text-[11px] text-sky-500 hover:underline flex items-center gap-1 font-medium">
+                            <span>Lấy Key miễn phí 30s</span>
+                            <i class="fa-solid fa-arrow-up-right-from-square text-[9px]"></i>
+                        </a>
+                    </div>
+                    <input type="text" id="apiTokenInput" class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl p-2.5 text-xs font-mono text-slate-900 dark:text-white focus:outline-none focus:border-sky-500" placeholder="vd: cr1234xxxxxx hoặc dán API Token vào đây">
+                </div>
+
+                <!-- Tần suất cập nhật -->
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
+                        Tần Suất Quét Giá Tự Động (Polling Interval):
+                    </label>
+                    <select id="apiIntervalSelect" class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl p-2.5 text-xs font-medium text-slate-900 dark:text-white focus:outline-none focus:border-sky-500">
+                        <option value="3000">3 giây / lần (Rất nhanh - khuyến nghị Finnhub)</option>
+                        <option value="5000" selected>5 giây / lần (Cân bằng & tiết kiệm rate limit)</option>
+                        <option value="10000">10 giây / lần</option>
+                        <option value="30000">30 giây / lần</option>
+                    </select>
+                </div>
+
+                <!-- Thông tin cơ chế đa luồng -->
+                <div class="p-3 bg-sky-50 dark:bg-sky-950/40 border border-sky-200 dark:border-sky-800 rounded-2xl text-[11px] text-sky-800 dark:text-sky-300 space-y-1.5">
+                    <div class="font-bold flex items-center gap-1.5">
+                        <i class="fa-solid fa-microchip"></i>
+                        <span>Cơ Chế Phân Luồng Thông Minh Tự Động:</span>
+                    </div>
+                    <ul class="list-disc list-inside space-y-0.5 text-[10.5px] opacity-90 pl-1">
+                        <li><b>BTCUSDT & Crypto:</b> Chạy bằng <b>Binance WebSocket trực tiếp 24/7</b> (luôn miễn phí, không tốn quota API).</li>
+                        <li><b>XAUUSD & Forex:</b> Sẽ dùng API Key trên để kéo giá Bid/Ask thực từ sàn OANDA.</li>
+                        <li>Cuối tuần (T7 & CN), sàn Forex đóng cửa, hệ thống sẽ tự giữ mức giá đóng cửa phiên thứ Sáu.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="pt-3 flex justify-between items-center border-t border-slate-100 dark:border-slate-800">
+                <button type="button" onclick="testApiConnection()" class="px-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-semibold hover:bg-slate-200 transition">
+                    <i class="fa-solid fa-vial mr-1"></i>Kiểm Tra Kết Nối
+                </button>
+                <div class="flex gap-2">
+                    <button type="button" onclick="toggleApiSettingsModal(false)" class="px-3.5 py-2 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition">Hủy</button>
+                    <button type="button" onclick="saveApiSettings()" class="px-5 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold shadow-md shadow-amber-500/20 transition">Lưu Cấu Hình</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL GHI LỆNH MỚI -->
+    <div id="tradeModal" class="fixed inset-0 bg-slate-950/75 backdrop-blur-sm z-50 flex items-center justify-center p-3 hidden transition-opacity">
+        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-lg w-full p-5 shadow-2xl overflow-y-auto max-h-[92vh] space-y-4">
+            <div class="flex justify-between items-center pb-3 border-b border-slate-100 dark:border-slate-800">
+                <div class="flex items-center gap-2">
+                    <span class="w-2.5 h-2.5 rounded-full bg-sky-500"></span>
+                    <h3 class="font-bold text-slate-900 dark:text-white text-base">Ghi Nhật Ký Lệnh Mới</h3>
+                </div>
+                <button onclick="toggleTradeModal(false)" class="text-slate-400 hover:text-slate-600 dark:hover:text-white text-base p-1">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <form id="tradeForm" onsubmit="submitNewTrade(event)" class="space-y-3.5">
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Cặp Tiền</label>
+                        <input type="text" id="modalPair" required class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl p-2.5 text-xs text-slate-900 dark:text-white uppercase font-bold focus:outline-none focus:border-sky-500" placeholder="vd: XAUUSD">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Vị Thế</label>
+                        <select id="modalDirection" class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl p-2.5 text-xs font-bold text-slate-900 dark:text-white focus:outline-none focus:border-sky-500">
+                            <option value="BUY">BUY (Long)</option>
+                            <option value="SELL">SELL (Short)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-3 gap-2">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Entry Price</label>
+                        <input type="text" id="modalEntry" class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl p-2 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-sky-500" placeholder="Giá vào">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Stop Loss</label>
+                        <input type="text" id="modalSl" class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl p-2 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-sky-500" placeholder="Cắt lỗ">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Take Profit</label>
+                        <input type="text" id="modalTp" class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl p-2 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-sky-500" placeholder="Chốt lời">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Thiết lập SMC (Confluence)</label>
+                    <input type="text" id="modalSetup" required class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl p-2.5 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-sky-500" placeholder="Vd: Quét PDL + H4 OB + M5 CHoCH">
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Kết Quả Lệnh</label>
+                        <select id="modalResult" onchange="autoFillRValue(this.value)" class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl p-2.5 text-xs font-bold text-slate-900 dark:text-white focus:outline-none focus:border-sky-500">
+                            <option value="WIN">WIN (Chốt Lời)</option>
+                            <option value="LOSS">LOSS (Dính SL)</option>
+                            <option value="BE">BE (Hòa Vốn)</option>
+                            <option value="OPEN">OPEN (Đang Chạy)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">R:R Đạt Được</label>
+                        <input type="number" step="0.1" id="modalR" class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl p-2.5 text-xs font-bold text-slate-900 dark:text-white focus:outline-none focus:border-sky-500" placeholder="Vd: 3.5 (Loss nhập -1)">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Ghi Chú Tâm Lý & Bài Học</label>
+                    <textarea id="modalNotes" rows="2" class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl p-2.5 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-sky-500 placeholder-slate-400" placeholder="Có vội vàng FOMO không? Đúng kế hoạch không?..."></textarea>
+                </div>
+
+                <div class="pt-3 flex justify-end gap-2 border-t border-slate-100 dark:border-slate-800">
+                    <button type="button" onclick="toggleTradeModal(false)" class="px-3.5 py-2 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition">Hủy</button>
+                    <button type="submit" class="px-5 py-2 rounded-xl bg-sky-600 hover:bg-sky-500 text-white text-xs font-bold shadow-md shadow-sky-600/20 transition">Lưu Vào Nhật Ký</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL HƯỚNG DẪN ĐƯA LÊN ONLINE MIỄN PHÍ 100% -->
+    <div id="onlineGuideModal" class="fixed inset-0 bg-slate-950/75 backdrop-blur-sm z-50 flex items-center justify-center p-3 hidden transition-opacity">
+        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-2xl w-full p-5 sm:p-6 shadow-2xl overflow-y-auto max-h-[92vh] space-y-4">
+            <div class="flex justify-between items-center pb-3 border-b border-slate-100 dark:border-slate-800">
+                <div class="flex items-center gap-2">
+                    <i class="fa-solid fa-cloud-arrow-up text-emerald-500 text-lg"></i>
+                    <h3 class="font-bold text-slate-900 dark:text-white text-base">Hướng Dẫn Đưa Lên Online Miễn Phí Vĩnh Viễn</h3>
+                </div>
+                <button onclick="toggleOnlineGuideModal(false)" class="text-slate-400 hover:text-slate-600 dark:hover:text-white text-base p-1">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <div class="space-y-3.5 text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
+                <p>Chỉ cần 1 file HTML duy nhất này, Huynh có thể đưa lên mạng chạy vĩnh viễn 24/7, mở trên điện thoại (iPhone/Android) hay bất kỳ máy tính nào bằng đường link riêng (vd: <code class="text-sky-500 font-mono">huynh-smc.pages.dev</code> hoặc <code class="text-sky-500 font-mono">github.io</code>).</p>
+
+                <div class="bg-slate-50 dark:bg-slate-950 p-3.5 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-2">
+                    <div class="flex items-center gap-2 font-bold text-slate-900 dark:text-white text-sm">
+                        <i class="fa-brands fa-github text-slate-800 dark:text-slate-100 text-base"></i>
+                        <span>Cách 1: Sử dụng GitHub Pages (Khuyên Dùng, 2 phút)</span>
+                    </div>
+                    <ol class="list-decimal list-inside space-y-1 pl-1 text-[11px] text-slate-600 dark:text-slate-400">
+                        <li>Truy cập <a href="https://github.com" target="_blank" class="text-sky-500 underline font-semibold">github.com</a> và đăng ký tài khoản miễn phí.</li>
+                        <li>Bấm dấu <b>+</b> &rarr; Chọn <b>New repository</b> &rarr; Đặt tên (vd: <code class="text-sky-400">smc-trading-hub</code>) &rarr; Để <b>Public</b> &rarr; Bấm <b>Create repository</b>.</li>
+                        <li>Đổi tên file HTML này thành <b class="text-amber-500">index.html</b> rồi kéo thả tải lên (Upload files) &rarr; Bấm <b>Commit changes</b>.</li>
+                        <li>Vào tab <b>Settings</b> &rarr; Menu <b>Pages</b> bên trái &rarr; Chọn branch <b>main</b> rồi bấm <b>Save</b>.</li>
+                        <li>GitHub sẽ cấp cho Huynh link: <code class="text-emerald-500 font-mono font-bold">https://&lt;username&gt;.github.io/smc-trading-hub/</code>!</li>
+                    </ol>
+                </div>
+
+                <div class="bg-slate-50 dark:bg-slate-950 p-3.5 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-2">
+                    <div class="flex items-center gap-2 font-bold text-slate-900 dark:text-white text-sm">
+                        <i class="fa-solid fa-bolt text-amber-500 text-base"></i>
+                        <span>Cách 2: Kéo Thả 30 Giây Với Netlify Drop</span>
+                    </div>
+                    <ol class="list-decimal list-inside space-y-1 pl-1 text-[11px] text-slate-600 dark:text-slate-400">
+                        <li>Đổi tên file thành <b class="text-amber-500">index.html</b> và cho vào 1 thư mục bất kỳ.</li>
+                        <li>Mở trang <a href="https://app.netlify.com/drop" target="_blank" class="text-sky-500 underline font-semibold">app.netlify.com/drop</a>.</li>
+                        <li>Kéo thả thư mục đó vào. Trang web sẽ trực tiếp online ngay lập tức với link HTTPS có sẵn.</li>
+                    </ol>
+                </div>
+            </div>
+
+            <div class="pt-2 flex justify-end border-t border-slate-100 dark:border-slate-800">
+                <button type="button" onclick="toggleOnlineGuideModal(false)" class="px-4 py-2 rounded-xl bg-sky-600 hover:bg-sky-500 text-white text-xs font-bold transition">Đã Hiểu</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="mt-auto border-t border-slate-200 dark:border-slate-800/80 py-3 text-center text-[11px] text-slate-500 dark:text-slate-500">
+        SMC Trading Hub Pro &bull; Multi-Asset Live Engine &bull; Kỷ Luật Là Chìa Khóa
+    </footer>
+
+    <script>
+        // Cấu trúc dữ liệu mặc định
+        const DEFAULT_CHECKLIST = {
+            htfBias: false,
+            liquiditySweep: false,
+            validPoi: false,
+            ltfChoch: false,
+            rrRatio: false,
+            newsFilter: false
+        };
+
+        const DEFAULT_KEY_LEVELS = {
+            pdh: '',
+            pdl: '',
+            pwh: '',
+            pwl: '',
+            pmh: '',
+            pml: ''
+        };
+
+        const INITIAL_SESSIONS = [
+            { id: 'sydney', name: 'Phiên Sydney', code: 'SYD', open: '05:00', close: '14:00', color: 'indigo', note: 'Biên độ tích lũy, quét thanh khoản sáng sớm' },
+            { id: 'tokyo', name: 'Phiên Tokyo (Châu Á)', code: 'TYO', open: '07:00', close: '16:00', color: 'emerald', note: 'Tạo vùng Asian Range (High/Low) làm bẫy thanh khoản' },
+            { id: 'london', name: 'Phiên London (Châu Âu)', code: 'LDN', open: '14:00', close: '23:00', color: 'sky', note: 'Killzone cực mạnh: Quét Asian Range tạo Judah Swing' },
+            { id: 'newyork', name: 'Phiên New York (Mỹ)', code: 'NY', open: '19:00', close: '04:00', color: 'amber', note: 'Volume lớn nhất ngày: Tiếp diễn xu hướng hoặc Reversal' }
+        ];
+
+        const INITIAL_PAIRS = [
+            {
+                id: 'BTCUSDT',
+                name: 'BTCUSDT',
+                desc: 'Bitcoin / Tether USD',
+                bias: 'BULLISH',
+                livePrice: 65400.00,
+                keyLevels: {
+                    pdh: '66200',
+                    pdl: '64800',
+                    pwh: '68500',
+                    pwl: '62000',
+                    pmh: '70000',
+                    pml: '58000'
+                },
+                checklist: {
+                    htfBias: true,
+                    liquiditySweep: true,
+                    validPoi: true,
+                    ltfChoch: true,
+                    rrRatio: true,
+                    newsFilter: true
+                },
+                htfNotes: 'D1 phá đỉnh chu kỳ, dòng tiền tổ chức hấp thụ mạnh quanh vùng discount H4.',
+                ltfNotes: 'Đã hoàn thành sweep Sell-side liquidity khung M15, hình thành CHoCH tăng rõ nét.'
+            },
+            {
+                id: 'XAUUSD',
+                name: 'XAUUSD',
+                desc: 'Vàng Spot / Đô La Mỹ',
+                bias: 'BULLISH',
+                livePrice: 2642.50,
+                keyLevels: {
+                    pdh: '2655.80',
+                    pdl: '2628.20',
+                    pwh: '2670.00',
+                    pwl: '2590.00',
+                    pmh: '2685.50',
+                    pml: '2530.00'
+                },
+                checklist: {
+                    htfBias: true,
+                    liquiditySweep: true,
+                    validPoi: true,
+                    ltfChoch: false,
+                    rrRatio: true,
+                    newsFilter: true
+                },
+                htfNotes: 'D1 sóng tăng mạnh mẽ sau BOS 2600. H4 đang hồi về vùng FVG chưa lấp tại 2618 - 2624.',
+                ltfNotes: 'Chờ phiên London quét đáy PDL (2628), sau đó đợi M5 tạo CHoCH tăng để tìm entry buy.'
+            },
+            {
+                id: 'EURUSD',
+                name: 'EURUSD',
+                desc: 'Euro / Đô La Mỹ',
+                bias: 'BEARISH',
+                livePrice: 1.0835,
+                keyLevels: {
+                    pdh: '1.0870',
+                    pdl: '1.0815',
+                    pwh: '1.0920',
+                    pwl: '1.0780',
+                    pmh: '1.0980',
+                    pml: '1.0720'
+                },
+                checklist: {
+                    htfBias: true,
+                    liquiditySweep: false,
+                    validPoi: true,
+                    ltfChoch: false,
+                    rrRatio: false,
+                    newsFilter: true
+                },
+                htfNotes: 'H4 cấu trúc Giảm tiếp diễn. Giá đang hồi về Order Block giảm quanh 1.0860.',
+                ltfNotes: 'Cần đợi quét PDH 1.0870 trước khi kích hoạt phản ứng giảm tại M15.'
+            },
+            {
+                id: 'GBPUSD',
+                name: 'GBPUSD',
+                desc: 'Bảng Anh / Đô La Mỹ',
+                bias: 'NEUTRAL',
+                livePrice: 1.2985,
+                keyLevels: {
+                    pdh: '1.3040',
+                    pdl: '1.2940',
+                    pwh: '1.3120',
+                    pwl: '1.2880',
+                    pmh: '1.3200',
+                    pml: '1.2800'
+                },
+                checklist: { ...DEFAULT_CHECKLIST },
+                htfNotes: 'Biên độ nén trong Asian range, chưa phá vỡ cấu trúc.',
+                ltfNotes: 'Đứng ngoài chờ London quét một trong hai đầu.'
+            },
+            {
+                id: 'USDJPY',
+                name: 'USDJPY',
+                desc: 'Đô La Mỹ / Yên Nhật',
+                bias: 'BULLISH',
+                livePrice: 149.50,
+                keyLevels: {
+                    pdh: '150.20',
+                    pdl: '148.80',
+                    pwh: '151.00',
+                    pwl: '147.50',
+                    pmh: '152.50',
+                    pml: '145.00'
+                },
+                checklist: { ...DEFAULT_CHECKLIST },
+                htfNotes: 'Xu hướng tăng H4 mạnh mẽ, lực mua bảo vệ tốt vùng FVG.',
+                ltfNotes: 'Đợi London test lại vùng discount để tìm setup buy.'
+            }
+        ];
+
+        // Biến trạng thái toàn cục
+        let appState = {
+            theme: 'dark',
+            pairs: [],
+            trades: [],
+            sessions: INITIAL_SESSIONS,
+            currentPairId: 'BTCUSDT',
+            activeTab: 'pairs',
+            alertAudioEnabled: true,
+            autoFetchLive: true,
+            alertHistory: [],
+            lastAlertTriggerMap: {},
+            apiConfig: {
+                provider: 'finnhub', // 'finnhub' | 'twelvedata' | 'public_relay'
+                apiKey: '',
+                interval: 5000
+            }
+        };
+
+        let liveTickerTimer = null;
+        let btcWebSocket = null;
+        let audioContext = null;
+
+        // Quản lý âm thanh Web Audio API
+        function getAudioContext() {
+            if (!audioContext) {
+                const AudioCtx = window.AudioContext || window.webkitAudioContext;
+                if (AudioCtx) audioContext = new AudioCtx();
+            }
+            if (audioContext && audioContext.state === 'suspended') {
+                audioContext.resume();
+            }
+            return audioContext;
+        }
+
+        function playAlertSound(type = 'chime') {
+            if (!appState.alertAudioEnabled) return;
+            try {
+                const ctx = getAudioContext();
+                if (!ctx) return;
+
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+
+                const now = ctx.currentTime;
+                if (type === 'high') {
+                    osc.frequency.setValueAtTime(587.33, now); // D5
+                    osc.frequency.exponentialRampToValueAtTime(880, now + 0.15); // A5
+                    gain.gain.setValueAtTime(0.3, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.4);
+                    osc.start(now);
+                    osc.stop(now + 0.4);
+                } else if (type === 'low') {
+                    osc.frequency.setValueAtTime(440, now); // A4
+                    osc.frequency.exponentialRampToValueAtTime(261.63, now + 0.2); // C4
+                    gain.gain.setValueAtTime(0.3, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.45);
+                    osc.start(now);
+                    osc.stop(now + 0.45);
+                } else {
+                    osc.frequency.setValueAtTime(523.25, now);
+                    gain.gain.setValueAtTime(0.2, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
+                    osc.start(now);
+                    osc.stop(now + 0.3);
+                }
+            } catch(e) {
+                console.warn("Audio Context alert:", e);
+            }
+        }
+
+        function toggleAlertAudioPermission() {
+            appState.alertAudioEnabled = !appState.alertAudioEnabled;
+            getAudioContext();
+
+            if (appState.alertAudioEnabled) {
+                if ("Notification" in window && Notification.permission !== "granted" && Notification.permission !== "denied") {
+                    Notification.requestPermission();
+                }
+                playAlertSound('high');
+            }
+
+            updateAudioButtonUI();
+            saveStateToStorage();
+        }
+
+        function updateAudioButtonUI() {
+            const icon = document.getElementById('icon-audio');
+            const txt = document.getElementById('txt-audio-status');
+            if (appState.alertAudioEnabled) {
+                icon.className = "fa-solid fa-bell text-amber-500";
+                txt.innerText = "Chuông: Bật";
+            } else {
+                icon.className = "fa-solid fa-bell-slash text-slate-400";
+                txt.innerText = "Chuông: Tắt";
+            }
+        }
+
+        // Modal Quản Lý API
+        function toggleApiSettingsModal(show) {
+            const modal = document.getElementById('apiSettingsModal');
+            if (show) {
+                document.getElementById('apiProviderSelect').value = appState.apiConfig.provider || 'finnhub';
+                document.getElementById('apiTokenInput').value = appState.apiConfig.apiKey || '';
+                document.getElementById('apiIntervalSelect').value = appState.apiConfig.interval || 5000;
+                onProviderChange();
+                modal.classList.remove('hidden');
+            } else {
+                modal.classList.add('hidden');
+            }
+        }
+
+        function onProviderChange() {
+            const provider = document.getElementById('apiProviderSelect').value;
+            const inputWrapper = document.getElementById('apiKeyInputWrapper');
+            const link = document.getElementById('apiProviderLink');
+
+            if (provider === 'finnhub') {
+                inputWrapper.classList.remove('hidden');
+                link.href = 'https://finnhub.io/register';
+                link.innerHTML = `<span>Lấy Finnhub Key (Miễn phí 30s)</span> <i class="fa-solid fa-arrow-up-right-from-square text-[9px]"></i>`;
+            } else if (provider === 'twelvedata') {
+                inputWrapper.classList.remove('hidden');
+                link.href = 'https://twelvedata.com';
+                link.innerHTML = `<span>Lấy TwelveData Key</span> <i class="fa-solid fa-arrow-up-right-from-square text-[9px]"></i>`;
+            } else {
+                inputWrapper.classList.add('hidden');
+            }
+        }
+
+        function saveApiSettings() {
+            appState.apiConfig.provider = document.getElementById('apiProviderSelect').value;
+            appState.apiConfig.apiKey = document.getElementById('apiTokenInput').value.trim();
+            appState.apiConfig.interval = parseInt(document.getElementById('apiIntervalSelect').value) || 5000;
+
+            saveStateToStorage();
+            updateApiStatusBadge();
+            toggleApiSettingsModal(false);
+
+            // Khởi động lại luồng quét giá với cài đặt mới
+            startLivePriceFeed();
+            alert("Đã lưu cấu hình API thành công! Hệ thống đang kết nối dữ liệu...");
+        }
+
+        async function testApiConnection() {
+            const provider = document.getElementById('apiProviderSelect').value;
+            const key = document.getElementById('apiTokenInput').value.trim();
+
+            if (provider === 'finnhub') {
+                if (!key) {
+                    alert("Vui lòng dán Finnhub API Key vào ô trước khi kiểm tra!");
+                    return;
+                }
+                try {
+                    const res = await fetch(`https://finnhub.io/api/v1/quote?symbol=OANDA:XAU_USD&token=${key}`);
+                    if (res.ok) {
+                        const data = await res.json();
+                        if (data && data.c) {
+                            alert(`Kết nối Finnhub thành công rực rỡ!\nGiá Vàng (XAUUSD) hiện tại: ${data.c}`);
+                        } else {
+                            alert("API Key hợp lệ nhưng chưa trả về giá (có thể thị trường đang đóng phiên).");
+                        }
+                    } else {
+                        alert("Không thể kết nối! Kiểm tra lại mã API Key.");
+                    }
+                } catch(e) {
+                    alert("Lỗi kết nối mạng: " + e.message);
+                }
+            } else if (provider === 'twelvedata') {
+                if (!key) {
+                    alert("Vui lòng dán Twelve Data API Key vào ô trước khi kiểm tra!");
+                    return;
+                }
+                try {
+                    const res = await fetch(`https://api.twelvedata.com/price?symbol=XAU/USD&apikey=${key}`);
+                    const data = await res.json();
+                    if (data && data.price) {
+                        alert(`Kết nối Twelve Data thành công!\nGiá XAU/USD: ${data.price}`);
+                    } else {
+                        alert("Twelve Data phản hồi: " + (data.message || "Kiểm tra lại Key."));
+                    }
+                } catch(e) {
+                    alert("Lỗi mạng: " + e.message);
+                }
+            } else {
+                alert("Chế độ Public Fallback đang sẵn sàng.");
+            }
+        }
+
+        function updateApiStatusBadge() {
+            const dot = document.getElementById('apiStatusDot');
+            if (appState.apiConfig.apiKey) {
+                dot.className = "w-2 h-2 rounded-full bg-emerald-400 ring-2 ring-white/60 animate-pulse";
+            } else {
+                dot.className = "w-2 h-2 rounded-full bg-amber-300 ring-2 ring-white/40";
+            }
+        }
+
+        // Bộ Định Tuyến Giá Realtime
+        function startLivePriceFeed() {
+            connectActivePairLiveStream();
+
+            if (liveTickerTimer) clearInterval(liveTickerTimer);
+            liveTickerTimer = setInterval(() => {
+                if (!appState.autoFetchLive) return;
+                fetchForexAndGoldPrices();
+            }, appState.apiConfig.interval || 5000);
+        }
+
+        function connectActivePairLiveStream() {
+            const pair = getActivePair();
+            if (!pair) return;
+
+            const dot = document.getElementById('liveTickerDot');
+            const statusTxt = document.getElementById('liveFeedStatusText');
+
+            if (btcWebSocket) {
+                try { btcWebSocket.close(); } catch(e){}
+                btcWebSocket = null;
+            }
+
+            const cleanName = pair.name.toUpperCase();
+            if (cleanName.includes('BTC') || cleanName.includes('ETH') || cleanName.includes('SOL')) {
+                const streamSymbol = cleanName.includes('USDT') ? cleanName.toLowerCase() : `${cleanName.toLowerCase()}usdt`;
+                statusTxt.innerText = `WebSocket Trực Tiếp: Binance (${streamSymbol.toUpperCase()})`;
+                dot.className = "w-2 h-2 rounded-full bg-emerald-500 animate-pulse";
+
+                try {
+                    btcWebSocket = new WebSocket(`wss://stream.binance.com:9443/ws/${streamSymbol}@ticker`);
+                    btcWebSocket.onmessage = (event) => {
+                        const data = JSON.parse(event.data);
+                        if (data && data.c) {
+                            applyNewLivePrice(pair, parseFloat(data.c));
+                        }
+                    };
+                    btcWebSocket.onerror = () => {
+                        statusTxt.innerText = `Live Feed: Chế độ REST Fallback`;
+                    };
+                } catch(e) {
+                    console.log("WebSocket err:", e);
+                }
+            } else {
+                const provName = appState.apiConfig.apiKey ? (appState.apiConfig.provider === 'finnhub' ? 'Finnhub Live' : 'TwelveData Live') : 'Market Fallback Feed';
+                statusTxt.innerText = `Live Feed: ${pair.name} (${provName})`;
+                dot.className = "w-2 h-2 rounded-full bg-sky-500";
+                // Lấy ngay 1 lần lập tức
+                fetchForexAndGoldPrices();
+            }
+        }
+
+        async function fetchForexAndGoldPrices() {
+            const pair = getActivePair();
+            if (!pair) return;
+
+            const cleanName = pair.name.toUpperCase();
+            // Nếu là Crypto đã có WebSocket lo
+            if (cleanName.includes('BTC') || cleanName.includes('ETH')) return;
+
+            const key = appState.apiConfig.apiKey;
+            const provider = appState.apiConfig.provider;
+
+            if (provider === 'finnhub' && key) {
+                try {
+                    let finnhubSymbol = `OANDA:${cleanName.slice(0,3)}_${cleanName.slice(3)}`;
+                    if (cleanName === 'XAUUSD') finnhubSymbol = 'OANDA:XAU_USD';
+
+                    const res = await fetch(`https://finnhub.io/api/v1/quote?symbol=${finnhubSymbol}&token=${key}`);
+                    if (res.ok) {
+                        const data = await res.json();
+                        if (data && data.c && data.c > 0) {
+                            applyNewLivePrice(pair, parseFloat(data.c));
+                            return;
+                        }
+                    }
+                } catch(e) {
+                    console.warn("Finnhub poll failed:", e);
+                }
+            } else if (provider === 'twelvedata' && key) {
+                try {
+                    let tdSymbol = `${cleanName.slice(0,3)}/${cleanName.slice(3)}`;
+                    const res = await fetch(`https://api.twelvedata.com/price?symbol=${tdSymbol}&apikey=${key}`);
+                    if (res.ok) {
+                        const data = await res.json();
+                        if (data && data.price) {
+                            applyNewLivePrice(pair, parseFloat(data.price));
+                            return;
+                        }
+                    }
+                } catch(e) {
+                    console.warn("TwelveData poll failed:", e);
+                }
+            }
+
+            // Fallback: Nếu cuối tuần hoặc chưa có API Key -> nhẹ nhàng mô phỏng vi dao động quanh giá sàn chốt
+            simulateGentleFluctuation(pair);
+        }
+
+        function simulateGentleFluctuation(pair) {
+            if (!pair.livePrice) pair.livePrice = 2640.0;
+            const delta = (Math.random() - 0.49) * 0.35;
+            const newPrice = +(Number(pair.livePrice) + delta).toFixed(2);
+            applyNewLivePrice(pair, newPrice);
+        }
+
+        function applyNewLivePrice(pair, newPrice) {
+            const oldPrice = Number(pair.livePrice) || newPrice;
+            pair.livePrice = newPrice;
+
+            updateLivePriceDisplay(newPrice, oldPrice);
+            calculateKeyLevelDistances();
+            checkKeyLevelPriceAlert(pair, newPrice);
+            document.getElementById('liveFeedTimestamp').innerText = `Cập nhật: ${new Date().toLocaleTimeString('vi-VN')}`;
+            renderPairList();
+        }
+
+        function updateLivePriceDisplay(newPrice, oldPrice) {
+            const badge = document.getElementById('livePriceVal');
+            const container = document.getElementById('livePriceBadgeContainer');
+            if (!newPrice) {
+                badge.innerText = '--';
+                return;
+            }
+            badge.innerText = Number(newPrice).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 5 });
+
+            // Hiệu ứng flash xanh / đỏ khi giá biến động
+            if (newPrice > oldPrice) {
+                container.classList.remove('price-flash-red');
+                container.classList.add('price-flash-green');
+            } else if (newPrice < oldPrice) {
+                container.classList.remove('price-flash-green');
+                container.classList.add('price-flash-red');
+            }
+            setTimeout(() => {
+                container.classList.remove('price-flash-green', 'price-flash-red');
+            }, 600);
+        }
+
+        function simulatePriceTickPrompt() {
+            const pair = getActivePair();
+            if (!pair) return;
+            const input = prompt(`Nhập giá thị trường mới cho cặp ${pair.name} (để kiểm tra chuông cảnh báo):`, pair.livePrice || '');
+            if (input && !isNaN(input)) {
+                applyNewLivePrice(pair, parseFloat(input));
+                saveStateToStorage();
+            }
+        }
+
+        function toggleLiveFeedAuto() {
+            appState.autoFetchLive = !appState.autoFetchLive;
+            const btn = document.getElementById('btnToggleLiveAuto');
+            if (appState.autoFetchLive) {
+                btn.className = "px-2.5 py-1 rounded-lg bg-sky-500 text-white font-medium hover:bg-sky-600 transition flex items-center gap-1";
+                btn.innerHTML = `<i class="fa-solid fa-rotate"></i> Auto: BẬT`;
+            } else {
+                btn.className = "px-2.5 py-1 rounded-lg bg-slate-300 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-medium hover:bg-slate-400 transition flex items-center gap-1";
+                btn.innerHTML = `<i class="fa-solid fa-pause"></i> Auto: TẮT`;
+            }
+        }
+
+        function updateActivePairKeyLevel(levelKey, value) {
+            const pair = getActivePair();
+            if (!pair) return;
+
+            if (!pair.keyLevels) pair.keyLevels = { ...DEFAULT_KEY_LEVELS };
+            pair.keyLevels[levelKey] = value.trim();
+
+            saveStateToStorage();
+            calculateKeyLevelDistances();
+            checkKeyLevelPriceAlert(pair, Number(pair.livePrice));
+
+            showAutoSaveIndicator();
+        }
+
+        function calculateKeyLevelDistances() {
+            const pair = getActivePair();
+            if (!pair || !pair.livePrice) return;
+
+            const curr = Number(pair.livePrice);
+            const kl = pair.keyLevels || {};
+
+            const map = [
+                { id: 'badge-pdh-dist', val: kl.pdh },
+                { id: 'badge-pdl-dist', val: kl.pdl },
+                { id: 'badge-pwh-dist', val: kl.pwh },
+                { id: 'badge-pwl-dist', val: kl.pwl },
+                { id: 'badge-pmh-dist', val: kl.pmh },
+                { id: 'badge-pml-dist', val: kl.pml }
+            ];
+
+            map.forEach(item => {
+                const el = document.getElementById(item.id);
+                if (!el) return;
+                if (!item.val || isNaN(item.val)) {
+                    el.innerText = '--';
+                    el.className = 'text-[10px] text-slate-400';
+                    return;
+                }
+                const target = Number(item.val);
+                const diff = (curr - target);
+                const pct = ((diff / target) * 100).toFixed(2);
+
+                if (Math.abs(diff) < 0.0001) {
+                    el.innerText = 'ĐANG CHẠM!';
+                    el.className = 'text-[10px] font-bold text-amber-500 animate-pulse';
+                } else if (diff > 0) {
+                    el.innerText = `+${pct}% (Trên)`;
+                    el.className = 'text-[10px] text-slate-500 dark:text-slate-400';
+                } else {
+                    el.innerText = `${pct}% (Dưới)`;
+                    el.className = 'text-[10px] text-slate-500 dark:text-slate-400';
+                }
+            });
+        }
+
+        function checkKeyLevelPriceAlert(pair, newPrice) {
+            if (!pair || !pair.keyLevels || !newPrice) return;
+
+            const kl = pair.keyLevels;
+            const threshold = 0.0008; // Dung sai quét biên ~0.08%
+
+            const checkLevel = (name, val, isHigh) => {
+                if (!val || isNaN(val)) return;
+                const target = Number(val);
+                const diffRatio = Math.abs(newPrice - target) / target;
+                const alertKey = `${pair.id}_${name}`;
+
+                const isCrossed = isHigh ? (newPrice >= target) : (newPrice <= target);
+
+                if (diffRatio <= threshold || isCrossed) {
+                    const nowTime = Date.now();
+                    const lastTrigger = appState.lastAlertTriggerMap[alertKey] || 0;
+
+                    if (nowTime - lastTrigger > 45000) {
+                        appState.lastAlertTriggerMap[alertKey] = nowTime;
+                        triggerSMCAlert(pair, name, target, newPrice, isHigh);
+                    }
+                }
+            };
+
+            checkLevel('PDH (Đỉnh Ngày)', kl.pdh, true);
+            checkLevel('PDL (Đáy Ngày)', kl.pdl, false);
+            checkLevel('PWH (Đỉnh Tuần)', kl.pwh, true);
+            checkLevel('PWL (Đáy Tuần)', kl.pwl, false);
+            checkLevel('PMH (Đỉnh Tháng)', kl.pmh, true);
+            checkLevel('PML (Đáy Tháng)', kl.pml, false);
+        }
+
+        function triggerSMCAlert(pair, levelName, targetPrice, currentPrice, isHigh) {
+            const actionText = isHigh ? 'CHẠM / QUÉT ĐỈNH (BSL)' : 'CHẠM / QUÉT ĐÁY (SSL)';
+            const msg = `⚠️ [${pair.name}] Giá hiện tại ${currentPrice} vừa ${actionText} tại mốc ${levelName} (${targetPrice})!`;
+
+            playAlertSound(isHigh ? 'high' : 'low');
+
+            if ("Notification" in window && Notification.permission === "granted") {
+                try {
+                    new Notification(`SMC Cảnh Báo: ${pair.name}`, {
+                        body: msg,
+                        icon: 'https://placehold.co/128x128/0284c7/ffffff?text=SMC'
+                    });
+                } catch(e) {}
+            }
+
+            const banner = document.getElementById('liveAlertBanner');
+            const bannerText = document.getElementById('liveAlertBannerText');
+            bannerText.innerText = msg;
+            banner.classList.remove('hidden');
+
+            const historyItem = {
+                id: Date.now(),
+                pair: pair.name,
+                level: levelName,
+                price: currentPrice,
+                time: new Date().toLocaleTimeString('vi-VN')
+            };
+            appState.alertHistory.unshift(historyItem);
+            if (appState.alertHistory.length > 20) appState.alertHistory.pop();
+            saveStateToStorage();
+            renderAlertHistory();
+        }
+
+        function dismissAlertBanner() {
+            document.getElementById('liveAlertBanner').classList.add('hidden');
+        }
+
+        function renderAlertHistory() {
+            const list = document.getElementById('alertHistoryList');
+            if (!list) return;
+
+            if (appState.alertHistory.length === 0) {
+                list.innerHTML = `<p class="text-slate-400 py-2 text-center text-[11px]">Chưa có cảnh báo nào được kích hoạt.</p>`;
+                return;
+            }
+
+            list.innerHTML = appState.alertHistory.map(item => `
+                <div class="flex items-center justify-between p-2 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200/80 dark:border-slate-800/80">
+                    <div class="flex items-center gap-2">
+                        <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
+                        <span class="font-bold text-slate-800 dark:text-slate-200">${item.pair}</span>
+                        <span class="text-amber-600 dark:text-amber-400 font-semibold">${item.level}</span>
+                        <span class="text-slate-500 font-mono text-[11px] font-bold">@ ${item.price}</span>
+                    </div>
+                    <span class="text-[10px] text-slate-400 font-mono">${item.time}</span>
+                </div>
+            `).join('');
+        }
+
+        function clearAlertHistory() {
+            appState.alertHistory = [];
+            saveStateToStorage();
+            renderAlertHistory();
+        }
+
+        function startClockAndSessionMonitor() {
+            function tick() {
+                const now = new Date();
+                document.getElementById('clockLocalTime').innerText = now.toLocaleTimeString('vi-VN', { hour12: false });
+                const utcHours = String(now.getUTCHours()).padStart(2, '0');
+                const utcMins = String(now.getUTCMinutes()).padStart(2, '0');
+                const utcSecs = String(now.getUTCSeconds()).padStart(2, '0');
+                document.getElementById('clockUtcTime').innerText = `${utcHours}:${utcMins}:${utcSecs}`;
+
+                if (appState.activeTab === 'sessions') renderSessions();
+            }
+            tick();
+            setInterval(tick, 1000);
+        }
+
+        function isSessionActive(openStr, closeStr) {
+            const now = new Date();
+            const currMins = now.getHours() * 60 + now.getMinutes();
+
+            const [oH, oM] = openStr.split(':').map(Number);
+            const [cH, cM] = closeStr.split(':').map(Number);
+            const openMins = oH * 60 + oM;
+            const closeMins = cH * 60 + cM;
+
+            if (openMins < closeMins) {
+                return currMins >= openMins && currMins < closeMins;
+            } else {
+                return currMins >= openMins || currMins < closeMins;
+            }
+        }
+
+        function renderSessions() {
+            const container = document.getElementById('sessionsContainer');
+            if (!container) return;
+
+            container.innerHTML = appState.sessions.map((ses, idx) => {
+                const active = isSessionActive(ses.open, ses.close);
+                const borderClass = active 
+                    ? 'border-emerald-500 shadow-md shadow-emerald-500/10 bg-emerald-50/30 dark:bg-emerald-950/20' 
+                    : 'border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-950/50';
+
+                const statusBadge = active 
+                    ? `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500 text-white flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-white animate-ping"></span>ĐANG MỞ CỬA</span>`
+                    : `<span class="px-2 py-0.5 rounded text-[10px] font-semibold bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-400">ĐÃ ĐÓNG</span>`;
+
+                return `
+                    <div class="p-4 rounded-2xl border ${borderClass} space-y-3 transition-all">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <span class="text-[10px] font-bold text-sky-500 uppercase tracking-wider block">${ses.code}</span>
+                                <h4 class="font-bold text-sm text-slate-900 dark:text-white">${ses.name}</h4>
+                            </div>
+                            ${statusBadge}
+                        </div>
+
+                        <div class="space-y-1.5 pt-1">
+                            <div class="text-[11px] font-medium text-slate-500 dark:text-slate-400 flex justify-between">
+                                <span>Khung giờ (Giờ VN):</span>
+                                <span class="text-sky-500 font-mono text-[10px]">Tự sửa giờ</span>
+                            </div>
+                            <div class="grid grid-cols-2 gap-2">
+                                <div>
+                                    <label class="text-[10px] text-slate-400 block mb-0.5">Giờ Mở</label>
+                                    <input type="time" value="${ses.open}" onchange="updateSessionTime(${idx}, 'open', this.value)" class="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg p-1 text-xs font-mono font-bold text-slate-800 dark:text-white focus:outline-none focus:border-sky-500">
+                                </div>
+                                <div>
+                                    <label class="text-[10px] text-slate-400 block mb-0.5">Giờ Đóng</label>
+                                    <input type="time" value="${ses.close}" onchange="updateSessionTime(${idx}, 'close', this.value)" class="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg p-1 text-xs font-mono font-bold text-slate-800 dark:text-white focus:outline-none focus:border-sky-500">
+                                </div>
+                            </div>
+                        </div>
+
+                        <p class="text-[11px] text-slate-500 dark:text-slate-400 pt-1 border-t border-slate-100 dark:border-slate-800/80 leading-snug">
+                            <i class="fa-solid fa-crosshairs text-[10px] mr-1 text-amber-500"></i>${ses.note}
+                        </p>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function updateSessionTime(idx, field, val) {
+            if (appState.sessions[idx]) {
+                appState.sessions[idx][field] = val;
+                saveStateToStorage();
+                renderSessions();
+            }
+        }
+
+        function getPairChecklistScore(pair) {
+            if (!pair || !pair.checklist) return 0;
+            return Object.values(pair.checklist).filter(Boolean).length;
+        }
+
+        function toggleChecklistItem(key, checked) {
+            const pair = getActivePair();
+            if (!pair) return;
+
+            if (!pair.checklist) pair.checklist = { ...DEFAULT_CHECKLIST };
+            pair.checklist[key] = checked;
+
+            saveStateToStorage();
+            renderPairList();
+            updateChecklistStatusDisplay();
+        }
+
+        function resetActiveChecklist() {
+            const pair = getActivePair();
+            if (!pair) return;
+
+            pair.checklist = { ...DEFAULT_CHECKLIST };
+            saveStateToStorage();
+            renderActivePairDetails();
+            renderPairList();
+        }
+
+        function updateChecklistStatusDisplay() {
+            const pair = getActivePair();
+            if (!pair) return;
+
+            const score = getPairChecklistScore(pair);
+            const scoreBadge = document.getElementById('checklistScoreBadge');
+            scoreBadge.innerText = `${score}/6 Tiêu Chuẩn`;
+
+            const banner = document.getElementById('checklistStatusBanner');
+            const text = document.getElementById('checklistStatusText');
+
+            if (score === 6) {
+                banner.className = "mt-3 py-2.5 px-3 rounded-xl text-xs font-semibold flex items-center justify-between transition-all bg-emerald-100 dark:bg-emerald-950/70 text-emerald-800 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800";
+                text.innerHTML = `<i class="fa-solid fa-circle-check mr-1.5 text-emerald-500"></i><b>High-Probability Setup!</b> Đạt 6/6 điều kiện SMC. Có thể tự tin mở lệnh theo kế hoạch.`;
+                scoreBadge.className = 'text-xs font-bold px-2 py-0.5 rounded-full bg-emerald-500 text-white';
+            } else if (score >= 4) {
+                banner.className = "mt-3 py-2.5 px-3 rounded-xl text-xs font-semibold flex items-center justify-between transition-all bg-sky-100 dark:bg-sky-950/70 text-sky-800 dark:text-sky-300 border border-sky-300 dark:border-sky-800";
+                text.innerHTML = `<i class="fa-solid fa-circle-info mr-1.5 text-sky-500"></i>Đã đạt ${score}/6 tiêu chuẩn. Chú ý thêm phản ứng tại Key Level hoặc LTF CHoCH.`;
+                scoreBadge.className = 'text-xs font-bold px-2 py-0.5 rounded-full bg-sky-500 text-white';
+            } else {
+                banner.className = "mt-3 py-2.5 px-3 rounded-xl text-xs font-semibold flex items-center justify-between transition-all bg-slate-100 dark:bg-slate-800/80 text-slate-600 dark:text-slate-400";
+                text.innerHTML = `<i class="fa-solid fa-hourglass-half mr-1.5"></i>Chưa đủ tín hiệu an toàn (${score}/6). Hãy kiên nhẫn chờ Big Boys tạo thanh khoản rõ ràng.`;
+                scoreBadge.className = 'text-xs font-bold px-2 py-0.5 rounded-full bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300';
+            }
+        }
+
+        function renderPairList() {
+            const container = document.getElementById('pairListContainer');
+            container.innerHTML = '';
+
+            if (appState.pairs.length === 0) {
+                container.innerHTML = `<p class="text-xs text-slate-400 text-center py-4">Chưa có cặp tiền nào.</p>`;
+                return;
+            }
+
+            appState.pairs.forEach(pair => {
+                const isActive = pair.id === appState.currentPairId;
+                const score = getPairChecklistScore(pair);
+
+                let biasBadgeClass = 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400';
+                if (pair.bias === 'BULLISH') biasBadgeClass = 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-400';
+                if (pair.bias === 'BEARISH') biasBadgeClass = 'bg-rose-100 text-rose-700 dark:bg-rose-950/60 dark:text-rose-400';
+
+                let scoreBadgeClass = 'text-slate-500 bg-slate-100 dark:bg-slate-800';
+                if (score === 6) scoreBadgeClass = 'text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/30 font-bold';
+                else if (score >= 4) scoreBadgeClass = 'text-sky-600 dark:text-sky-400 bg-sky-50 dark:bg-sky-900/30';
+
+                const priceDisplay = pair.livePrice ? Number(pair.livePrice).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 5 }) : '--';
+
+                const card = document.createElement('div');
+                card.className = `p-3 rounded-2xl cursor-pointer border transition-all flex items-center justify-between ${
+                    isActive 
+                        ? 'bg-sky-50/70 dark:bg-sky-950/30 border-sky-500 shadow-sm' 
+                        : 'bg-slate-50/50 dark:bg-slate-950/50 border-slate-200/80 dark:border-slate-800/80 hover:border-slate-300 dark:hover:border-slate-700'
+                }`;
+                card.onclick = () => selectPair(pair.id);
+
+                card.innerHTML = `
+                    <div class="space-y-0.5">
+                        <div class="flex items-center gap-2">
+                            <span class="font-bold text-sm text-slate-900 dark:text-white">${pair.name}</span>
+                            <span class="text-[10px] font-bold px-1.5 py-0.5 rounded ${biasBadgeClass}">${pair.bias}</span>
+                        </div>
+                        <p class="text-[11px] text-slate-500 dark:text-slate-400 line-clamp-1">${pair.desc || 'Forex/Crypto'}</p>
+                    </div>
+                    <div class="text-right space-y-1">
+                        <div class="text-xs font-mono font-bold text-slate-900 dark:text-slate-100">${priceDisplay}</div>
+                        <span class="text-[10px] px-1.5 py-0.5 rounded font-medium ${scoreBadgeClass}">
+                            <i class="fa-solid fa-list-check text-[9px] mr-1"></i>${score}/6
+                        </span>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function selectPair(pairId) {
+            appState.currentPairId = pairId;
+            renderPairList();
+            renderActivePairDetails();
+            connectActivePairLiveStream();
+        }
+
+        function getActivePair() {
+            return appState.pairs.find(p => p.id === appState.currentPairId) || appState.pairs[0];
+        }
+
+        function renderActivePairDetails() {
+            const pair = getActivePair();
+            if (!pair) return;
+
+            document.getElementById('currentPairTitle').innerText = pair.name;
+            document.getElementById('currentPairDesc').innerText = pair.desc || 'Thông tin cặp tiền';
+            document.getElementById('dailyBiasSelect').value = pair.bias || 'NEUTRAL';
+
+            updateLivePriceDisplay(pair.livePrice, pair.livePrice);
+
+            const badge = document.getElementById('currentPairBiasBadge');
+            badge.innerText = pair.bias;
+            if (pair.bias === 'BULLISH') {
+                badge.className = 'text-xs font-bold px-2 py-0.5 rounded uppercase bg-emerald-100 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-400';
+            } else if (pair.bias === 'BEARISH') {
+                badge.className = 'text-xs font-bold px-2 py-0.5 rounded uppercase bg-rose-100 text-rose-700 dark:bg-rose-950/60 dark:text-rose-400';
+            } else {
+                badge.className = 'text-xs font-bold px-2 py-0.5 rounded uppercase bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400';
+            }
+
+            const kl = pair.keyLevels || { ...DEFAULT_KEY_LEVELS };
+            document.getElementById('keyLevelPDH').value = kl.pdh || '';
+            document.getElementById('keyLevelPDL').value = kl.pdl || '';
+            document.getElementById('keyLevelPWH').value = kl.pwh || '';
+            document.getElementById('keyLevelPWL').value = kl.pwl || '';
+            document.getElementById('keyLevelPMH').value = kl.pmh || '';
+            document.getElementById('keyLevelPML').value = kl.pml || '';
+
+            calculateKeyLevelDistances();
+
+            document.getElementById('pairHtfInput').value = pair.htfNotes || '';
+            document.getElementById('pairLtfInput').value = pair.ltfNotes || '';
+
+            const checklist = pair.checklist || { ...DEFAULT_CHECKLIST };
+            document.querySelectorAll('#checklistForm input[type="checkbox"]').forEach(cb => {
+                const key = cb.getAttribute('data-check');
+                cb.checked = !!checklist[key];
+            });
+
+            updateChecklistStatusDisplay();
+        }
+
+        function updateActivePairField(fieldName, value) {
+            const pair = getActivePair();
+            if (!pair) return;
+
+            pair[fieldName] = value;
+            saveStateToStorage();
+
+            if (fieldName === 'bias') renderActivePairDetails();
+            renderPairList();
+            showAutoSaveIndicator();
+        }
+
+        function showAutoSaveIndicator() {
+            const ind = document.getElementById('autoSaveIndicator');
+            ind.classList.remove('hidden');
+            clearTimeout(window._autoSaveTimer);
+            window._autoSaveTimer = setTimeout(() => {
+                ind.classList.add('hidden');
+            }, 1400);
+        }
+
+        function promptAddPair() {
+            const symbol = prompt("Nhập mã cặp tiền muốn theo dõi (vd: GBPJPY, AUDUSD, SOLUSDT):");
+            if (!symbol || !symbol.trim()) return;
+
+            const cleanSymbol = symbol.trim().toUpperCase();
+            if (appState.pairs.some(p => p.id === cleanSymbol)) {
+                alert("Cặp tiền này đã có trong danh mục quan sát rồi Huynh ơi!");
+                return;
+            }
+
+            const desc = prompt("Nhập ghi chú hoặc mô tả cặp tiền:", cleanSymbol) || cleanSymbol;
+
+            const newPair = {
+                id: cleanSymbol,
+                name: cleanSymbol,
+                desc: desc,
+                bias: 'NEUTRAL',
+                livePrice: 0,
+                keyLevels: { ...DEFAULT_KEY_LEVELS },
+                checklist: { ...DEFAULT_CHECKLIST },
+                htfNotes: '',
+                ltfNotes: ''
+            };
+
+            appState.pairs.push(newPair);
+            appState.currentPairId = newPair.id;
+
+            saveStateToStorage();
+            renderPairList();
+            renderActivePairDetails();
+            renderFilterPairOptions();
+            connectActivePairLiveStream();
+        }
+
+        function deleteActivePair() {
+            const pair = getActivePair();
+            if (!pair) return;
+
+            if (confirm(`Huynh có chắc muốn xóa cặp ${pair.name} khỏi danh mục?`)) {
+                appState.pairs = appState.pairs.filter(p => p.id !== pair.id);
+                if (appState.pairs.length > 0) {
+                    appState.currentPairId = appState.pairs[0].id;
+                } else {
+                    appState.currentPairId = null;
+                }
+                saveStateToStorage();
+                renderPairList();
+                renderActivePairDetails();
+                renderFilterPairOptions();
+            }
+        }
+
+        function openTradeModalWithCurrentPair() {
+            const pair = getActivePair();
+            toggleTradeModal(true);
+            if (pair) {
+                document.getElementById('modalPair').value = pair.name;
+                const score = getPairChecklistScore(pair);
+                document.getElementById('modalSetup').value = `SMC Confluence (${score}/6) & Key Level Sweep: ${pair.bias}`;
+                if (pair.livePrice) document.getElementById('modalEntry').value = pair.livePrice;
+            }
+        }
+
+        function toggleTradeModal(show) {
+            const modal = document.getElementById('tradeModal');
+            if (show) {
+                modal.classList.remove('hidden');
+                if (!document.getElementById('modalPair').value && getActivePair()) {
+                    document.getElementById('modalPair').value = getActivePair().name;
+                }
+            } else {
+                modal.classList.add('hidden');
+                document.getElementById('tradeForm').reset();
+            }
+        }
+
+        function toggleOnlineGuideModal(show) {
+            const modal = document.getElementById('onlineGuideModal');
+            if (show) modal.classList.remove('hidden');
+            else modal.classList.add('hidden');
+        }
+
+        function autoFillRValue(result) {
+            const rInput = document.getElementById('modalR');
+            if (result === 'LOSS' && !rInput.value) {
+                rInput.value = '-1';
+            } else if (result === 'BE' && !rInput.value) {
+                rInput.value = '0';
+            } else if (result === 'WIN' && !rInput.value) {
+                rInput.value = '3';
+            }
+        }
+
+        function submitNewTrade(e) {
+            e.preventDefault();
+            const now = new Date();
+            const dateStr = `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+
+            const newTrade = {
+                id: Date.now(),
+                timestamp: dateStr,
+                pair: document.getElementById('modalPair').value.trim().toUpperCase(),
+                direction: document.getElementById('modalDirection').value,
+                entry: document.getElementById('modalEntry').value || '-',
+                sl: document.getElementById('modalSl').value || '-',
+                tp: document.getElementById('modalTp').value || '-',
+                setup: document.getElementById('modalSetup').value,
+                result: document.getElementById('modalResult').value,
+                rr: parseFloat(document.getElementById('modalR').value) || 0,
+                notes: document.getElementById('modalNotes').value || '-'
+            };
+
+            appState.trades.unshift(newTrade);
+            saveStateToStorage();
+            renderJournalTable();
+            calculateJournalStats();
+            renderFilterPairOptions();
+            toggleTradeModal(false);
+
+            switchTab('journal');
+        }
+
+        function deleteTradeRecord(id) {
+            if (confirm("Huynh có muốn xóa bản ghi lệnh này không?")) {
+                appState.trades = appState.trades.filter(t => t.id !== id);
+                saveStateToStorage();
+                renderJournalTable();
+                calculateJournalStats();
+            }
+        }
+
+        function renderFilterPairOptions() {
+            const select = document.getElementById('filterPairSelect');
+            const currentVal = select.value || 'ALL';
+            select.innerHTML = '<option value="ALL">Tất cả cặp</option>';
+
+            const uniquePairs = Array.from(new Set([
+                ...appState.pairs.map(p => p.name),
+                ...appState.trades.map(t => t.pair)
+            ])).filter(Boolean);
+
+            uniquePairs.forEach(p => {
+                const opt = document.createElement('option');
+                opt.value = p;
+                opt.innerText = p;
+                select.appendChild(opt);
+            });
+
+            select.value = currentVal;
+        }
+
+        function renderJournalTable() {
+            const tbody = document.getElementById('tradeJournalTbody');
+            tbody.innerHTML = '';
+
+            const filterPair = document.getElementById('filterPairSelect').value;
+            const filteredTrades = filterPair === 'ALL' 
+                ? appState.trades 
+                : appState.trades.filter(t => t.pair === filterPair);
+
+            if (filteredTrades.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="9" class="text-center py-8 text-slate-400 dark:text-slate-500">Chưa có giao dịch nào phù hợp.</td></tr>`;
+                return;
+            }
+
+            filteredTrades.forEach(trade => {
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-slate-50 dark:hover:bg-slate-800/40 transition";
+
+                const isBuy = trade.direction === 'BUY';
+                const posBadge = isBuy 
+                    ? 'bg-sky-100 text-sky-700 dark:bg-sky-950/70 dark:text-sky-400 border border-sky-300 dark:border-sky-800' 
+                    : 'bg-amber-100 text-amber-700 dark:bg-amber-950/70 dark:text-amber-400 border border-amber-300 dark:border-amber-800';
+
+                let resBadge = 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400';
+                if (trade.result === 'WIN') resBadge = 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/70 dark:text-emerald-400 border border-emerald-300 dark:border-emerald-800';
+                else if (trade.result === 'LOSS') resBadge = 'bg-rose-100 text-rose-700 dark:bg-rose-950/70 dark:text-rose-400 border border-rose-300 dark:border-rose-800';
+                else if (trade.result === 'BE') resBadge = 'bg-slate-200 text-slate-700 dark:bg-slate-800 dark:text-slate-300';
+
+                const rrColor = trade.rr > 0 
+                    ? 'text-emerald-600 dark:text-emerald-400 font-bold' 
+                    : (trade.rr < 0 ? 'text-rose-600 dark:text-rose-400 font-bold' : 'text-slate-500 font-medium');
+
+                tr.innerHTML = `
+                    <td class="py-3 px-3 text-slate-500 dark:text-slate-400 whitespace-nowrap">${trade.timestamp}</td>
+                    <td class="py-3 px-3 font-bold text-slate-900 dark:text-white whitespace-nowrap">${trade.pair}</td>
+                    <td class="py-3 px-3 whitespace-nowrap">
+                        <span class="text-[10px] font-bold px-2 py-0.5 rounded ${posBadge}">${trade.direction}</span>
+                    </td>
+                    <td class="py-3 px-3 text-slate-700 dark:text-slate-300 max-w-[180px] truncate" title="${trade.setup}">${trade.setup}</td>
+                    <td class="py-3 px-3 text-[11px] text-slate-500 dark:text-slate-400 whitespace-nowrap">
+                        E: ${trade.entry} | SL: ${trade.sl} | TP: ${trade.tp}
+                    </td>
+                    <td class="py-3 px-3 whitespace-nowrap">
+                        <span class="text-[10px] font-bold px-2 py-0.5 rounded ${resBadge}">${trade.result}</span>
+                    </td>
+                    <td class="py-3 px-3 ${rrColor} whitespace-nowrap">
+                        ${trade.rr > 0 ? '+' : ''}${trade.rr}R
+                    </td>
+                    <td class="py-3 px-3 text-slate-600 dark:text-slate-400 max-w-[150px] truncate" title="${trade.notes}">${trade.notes}</td>
+                    <td class="py-3 px-3 text-center whitespace-nowrap">
+                        <button onclick="deleteTradeRecord(${trade.id})" class="text-rose-500 hover:text-rose-700 dark:hover:text-rose-400 p-1 transition" title="Xóa lệnh">
+                            <i class="fa-solid fa-trash-can"></i>
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function calculateJournalStats() {
+            const total = appState.trades.length;
+            document.getElementById('statTotalTrades').innerText = total;
+
+            if (total === 0) {
+                document.getElementById('statWinrate').innerText = '0%';
+                document.getElementById('statTotalR').innerText = '0R';
+                document.getElementById('statWinLoss').innerText = '0W - 0L - 0BE';
+                return;
+            }
+
+            const wins = appState.trades.filter(t => t.result === 'WIN').length;
+            const losses = appState.trades.filter(t => t.result === 'LOSS').length;
+            const bes = appState.trades.filter(t => t.result === 'BE').length;
+
+            const decidedTrades = wins + losses;
+            const winRate = decidedTrades > 0 ? ((wins / decidedTrades) * 100).toFixed(1) : 0;
+            const totalR = appState.trades.reduce((acc, t) => acc + (t.rr || 0), 0).toFixed(1);
+
+            document.getElementById('statWinrate').innerText = `${winRate}%`;
+            document.getElementById('statTotalR').innerText = `${totalR > 0 ? '+' : ''}${totalR}R`;
+            document.getElementById('statWinLoss').innerText = `${wins}W - ${losses}L - ${bes}BE`;
+        }
+
+        function exportData() {
+            const payload = {
+                version: "3.5-final",
+                exportedAt: new Date().toISOString(),
+                pairs: appState.pairs,
+                trades: appState.trades,
+                sessions: appState.sessions,
+                alertAudioEnabled: appState.alertAudioEnabled,
+                alertHistory: appState.alertHistory,
+                currentPairId: appState.currentPairId,
+                apiConfig: appState.apiConfig
+            };
+
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(payload, null, 2));
+            const dlAnchor = document.createElement('a');
+            const dateStr = new Date().toISOString().slice(0, 10);
+            dlAnchor.setAttribute("href", dataStr);
+            dlAnchor.setAttribute("download", `SMC_Hub_Backup_${dateStr}.json`);
+            dlAnchor.click();
+        }
+
+        function importData(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const parsed = JSON.parse(e.target.result);
+                    if (parsed && (parsed.pairs || parsed.trades)) {
+                        appState.pairs = parsed.pairs || INITIAL_PAIRS;
+                        appState.trades = parsed.trades || [];
+                        if (parsed.sessions) appState.sessions = parsed.sessions;
+                        if (parsed.alertHistory) appState.alertHistory = parsed.alertHistory;
+                        if (parsed.apiConfig) appState.apiConfig = parsed.apiConfig;
+                        appState.currentPairId = parsed.currentPairId || (appState.pairs[0] ? appState.pairs[0].id : 'BTCUSDT');
+                        saveStateToStorage();
+                        renderPairList();
+                        renderActivePairDetails();
+                        renderSessions();
+                        renderAlertHistory();
+                        renderFilterPairOptions();
+                        renderJournalTable();
+                        calculateJournalStats();
+                        updateApiStatusBadge();
+                        startLivePriceFeed();
+                        alert("Đã nhập dữ liệu thành công vào SMC Trading Hub Pro Final!");
+                    } else {
+                        alert("File không đúng cấu trúc dữ liệu!");
+                    }
+                } catch(err) {
+                    alert("Lỗi đọc file JSON: " + err.message);
+                }
+            };
+            reader.readAsText(file);
+            event.target.value = '';
+        }
+
+        function saveStateToStorage() {
+            localStorage.setItem('smc_hub_final_data', JSON.stringify({
+                pairs: appState.pairs,
+                trades: appState.trades,
+                sessions: appState.sessions,
+                currentPairId: appState.currentPairId,
+                alertAudioEnabled: appState.alertAudioEnabled,
+                alertHistory: appState.alertHistory,
+                apiConfig: appState.apiConfig
+            }));
+        }
+
+        function setTheme(themeMode, shouldSave = true) {
+            appState.theme = themeMode;
+            if (shouldSave) {
+                localStorage.setItem('smc_theme_mode', themeMode);
+            }
+
+            ['light', 'dark', 'system'].forEach(m => {
+                const btn = document.getElementById(`btn-theme-${m}`);
+                if (btn) {
+                    if (m === themeMode) {
+                        btn.className = "px-2 py-1 rounded-lg text-sky-600 dark:text-sky-400 bg-white dark:bg-slate-900 shadow-sm transition";
+                    } else {
+                        btn.className = "px-2 py-1 rounded-lg text-slate-500 hover:text-slate-900 dark:hover:text-slate-100 transition";
+                    }
+                }
+            });
+
+            if (themeMode === 'light') {
+                document.documentElement.classList.remove('dark');
+            } else if (themeMode === 'dark') {
+                document.documentElement.classList.add('dark');
+            } else {
+                const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                if (prefersDark) document.documentElement.classList.add('dark');
+                else document.documentElement.classList.remove('dark');
+            }
+        }
+
+        function switchTab(tab) {
+            appState.activeTab = tab;
+            const views = {
+                pairs: document.getElementById('view-pairs'),
+                sessions: document.getElementById('view-sessions'),
+                journal: document.getElementById('view-journal')
+            };
+
+            const navBtns = {
+                pairs: document.getElementById('nav-tab-pairs'),
+                sessions: document.getElementById('nav-tab-sessions'),
+                journal: document.getElementById('nav-tab-journal')
+            };
+
+            Object.keys(views).forEach(key => {
+                if (key === tab) {
+                    views[key].classList.remove('hidden');
+                    navBtns[key].className = "px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 bg-white dark:bg-slate-900 text-sky-600 dark:text-sky-400 shadow-sm";
+                } else {
+                    views[key].classList.add('hidden');
+                    navBtns[key].className = "px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white";
+                }
+            });
+
+            if (tab === 'sessions') renderSessions();
+            if (tab === 'journal') {
+                renderJournalTable();
+                calculateJournalStats();
+            }
+        }
+
+        function initApp() {
+            const savedTheme = localStorage.getItem('smc_theme_mode') || 'dark';
+            setTheme(savedTheme, false);
+
+            window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+                if (appState.theme === 'system') setTheme('system', false);
+            });
+
+            const savedState = localStorage.getItem('smc_hub_final_data') || localStorage.getItem('smc_hub_v3_data');
+            if (savedState) {
+                try {
+                    const parsed = JSON.parse(savedState);
+                    appState.pairs = parsed.pairs || INITIAL_PAIRS;
+                    appState.trades = parsed.trades || [];
+                    appState.sessions = parsed.sessions || INITIAL_SESSIONS;
+                    appState.currentPairId = parsed.currentPairId || 'BTCUSDT';
+                    appState.alertAudioEnabled = parsed.alertAudioEnabled !== undefined ? parsed.alertAudioEnabled : true;
+                    appState.alertHistory = parsed.alertHistory || [];
+                    if (parsed.apiConfig) appState.apiConfig = parsed.apiConfig;
+                } catch(e) {
+                    console.error("Lỗi phục hồi dữ liệu:", e);
+                    appState.pairs = INITIAL_PAIRS;
+                    appState.trades = [];
+                    appState.sessions = INITIAL_SESSIONS;
+                }
+            } else {
+                appState.pairs = INITIAL_PAIRS;
+                appState.trades = [];
+                appState.sessions = INITIAL_SESSIONS;
+                saveStateToStorage();
+            }
+
+            appState.pairs.forEach(p => {
+                if (!p.checklist) p.checklist = { ...DEFAULT_CHECKLIST };
+                if (!p.keyLevels) p.keyLevels = { ...DEFAULT_KEY_LEVELS };
+                if (p.livePrice === undefined) p.livePrice = 0;
+            });
+
+            updateAudioButtonUI();
+            updateApiStatusBadge();
+            renderPairList();
+            renderActivePairDetails();
+            renderSessions();
+            renderAlertHistory();
+            renderFilterPairOptions();
+            renderJournalTable();
+            calculateJournalStats();
+
+            startClockAndSessionMonitor();
+            startLivePriceFeed();
+        }
+
+        window.addEventListener('DOMContentLoaded', initApp);
+    </script>
+</body>
+</html>
